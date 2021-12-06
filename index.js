@@ -284,7 +284,6 @@ function init() {
     document.addEventListener("keydown", keyDown, false);
 
     window.addEventListener("resize", () => {
-        console.log("")
         if (window.innerWidth >= window.innerHeight) {
             document.getElementById("canvasSpace").style.flexDirection = "row";
         } else {
