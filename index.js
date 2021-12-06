@@ -40,14 +40,6 @@ let memoryData = [];
 let maxDataFrames = 1;
 let memoryIndex = 0;
 
-window.addEventListener("resize", () => {
-    if (window.innerWidth >= window.innerHeight) {
-
-    } else {
-
-    }
-});
-
 /*
  * Utils
  */
@@ -290,6 +282,15 @@ function init() {
     canvas.addEventListener("mouseup", mouseUp, false);
     canvas.addEventListener("mousemove", mouseMove, false);
     document.addEventListener("keydown", keyDown, false);
+
+    window.addEventListener("resize", () => {
+        console.log("")
+        if (window.innerWidth >= window.innerHeight) {
+            document.getElementById("canvasSpace").style.flexDirection = "row";
+        } else {
+            document.getElementById("canvasSpace").style.flexDirection = "column";
+        }
+    });
 
     startTime = new Date().getTime();
 
