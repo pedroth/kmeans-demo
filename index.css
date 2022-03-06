@@ -63,6 +63,7 @@ body {
 
 #output {
   flex-grow: 1;
+  margin-bottom: 25px;
 }
 
 #clusterTable {

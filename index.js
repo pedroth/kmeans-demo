@@ -1,6 +1,9 @@
-/*
- *  Setup
- */
+//========================================================================================
+/*                                                                                      *
+ *                                       APP VARS                                       *
+ *                                                                                      */
+//========================================================================================
+
 let isVideo = true;
 let canvas = document.getElementById("canvas");
 let canvasVideo = document.getElementById("canvasVideo");
@@ -8,8 +11,6 @@ let ctx = canvas.getContext("2d");
 let ctxVideo = canvasVideo.getContext("2d");
 let imageLoader = document.getElementById("imageLoader");
 let auxImage;
-
-let down = false;
 
 let startTime;
 
@@ -44,40 +45,11 @@ let memoryData = [];
 let maxDataFrames = 1;
 let memoryIndex = 0;
 
-/*
- * Utils
- */
-function max(v) {
-  let maximum = Number.MIN_VALUE;
-  let maxIndex = -1;
-  for (let i = 0; i < v.length; i++) {
-    if (maximum < v[i]) {
-      maximum = v[i];
-      maxIndex = i;
-    }
-  }
-  return [maximum, maxIndex];
-}
-
-function powInt(x, i) {
-  if (i === 0) {
-    return 1;
-  } else if (i === 1) {
-    return x;
-  } else {
-    let q = Math.floor(i / 2);
-    let r = i % 2;
-    if (r === 0) {
-      return powInt(x * x, q);
-    } else {
-      return x * powInt(x * x, q);
-    }
-  }
-}
-
-function clamp(x, xmin, xmax) {
-  return Math.max(xmin, Math.min(x, xmax));
-}
+//========================================================================================
+/*                                                                                      *
+ *                                          UI                                          *
+ *                                                                                      */
+//========================================================================================
 
 function buildRow(name, rgb, clusterId) {
   rgb[0] = Math.floor(rgb[0]);
@@ -142,10 +114,9 @@ function updateTable() {
   for (let i = 0; i < n; i++) {
     table.removeChild(table.childNodes[0]);
   }
-
-  table.appendChild(buildRow("average", averageColor, -1));
+  table.appendChild(buildRow("Average", averageColor, -1));
   for (let i = 0; i < clusters.length; i++) {
-    table.appendChild(buildRow("cluster " + i, clusters[i], i));
+    table.appendChild(buildRow("Cluster " + i, clusters[i], i));
   }
 }
 
@@ -388,7 +359,12 @@ function samplingData(data, numOfSamples) {
   return memoryData;
 }
 
-// KMeans
+//========================================================================================
+/*                                                                                      *
+ *                                        KMeans                                        *
+ *                                                                                      */
+//========================================================================================
+
 function classifyData(x) {
   let kIndex = -1;
   let minDistance = Number.MAX_VALUE;
@@ -468,9 +444,13 @@ function runKmeans(
   }
   drawFunction(data, classifyFunction, stateMachine);
 }
-//End Kmeans
 
-//GMM
+//========================================================================================
+/*                                                                                      *
+ *                                          GMM                                         *
+ *                                                                                      */
+//========================================================================================
+
 function gaussian(x, mu, sigma) {
   let dist = myNorm(diff(x, mu));
   return (
@@ -558,7 +538,12 @@ function runGMM(
   }
   drawFunction(data, classifyFunction, stateMachine);
 }
-//End GMM
+
+//========================================================================================
+/*                                                                                      *
+ *                                         MAIN                                         *
+ *                                                                                      */
+//========================================================================================
 
 function myStateMachine(rgb, clusterIndex) {
   let state = clustersState[clusterIndex];
@@ -600,8 +585,8 @@ function draw() {
 
   let stateMachine = myStateMachine;
 
-  let yourSelect = document.getElementById("selectAlgorithm");
-  if (yourSelect.options[yourSelect.selectedIndex].value == "Kmeans") {
+  const yourSelect = document.getElementById("selectAlgorithm");
+  if (yourSelect.options[yourSelect.selectedIndex].value === "Kmeans") {
     runKmeans(
       videoImage,
       classifyData,
@@ -624,8 +609,6 @@ function draw() {
 
   requestAnimationFrame(draw);
 }
-/**
- *  Main
- **/
+
 init();
 requestAnimationFrame(draw);
