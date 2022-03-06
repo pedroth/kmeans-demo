@@ -33,6 +33,8 @@ export default class Canvas {
     this.data = this.image.data;
     this.min = min;
     this.max = max;
+    this.width = this.canvas.width;
+    this.height = this.canvas.height;
   }
 
   /**
@@ -130,7 +132,7 @@ export default class Canvas {
   drawLineIntClipped(x1, x2, rgb) {
     // faster than using vecs
     const [p0, p1] = [x1, x2].map((x) => x.toArray());
-    const v =  [p1[0] - p0[0], p1[1] - p0[1]];
+    const v = [p1[0] - p0[0], p1[1] - p0[1]];
     const n = Math.abs(v[0]) + Math.abs(v[1]);
     for (let k = 0; k < n; k++) {
       const s = k / n;
@@ -228,6 +230,15 @@ export default class Canvas {
    */
   paint() {
     this.ctx.putImageData(this.image, 0, 0);
+    return this;
+  }
+
+  /**
+   * Paint canvas with with image
+   * @param {ImageDOM | VideoDOM} image
+   */
+  paintImage(image) {
+    this.ctx.putImageData(image, 0, 0);
     return this;
   }
 

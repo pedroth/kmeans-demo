@@ -4,30 +4,24 @@
  *                                                                                      */
 //========================================================================================
 
+import Canvas from "./src/Canvas.js";
+import { createVideo, powInt } from "./src/Utils.js";
+
 let isVideo = true;
-let canvas = document.getElementById("canvas");
-let canvasVideo = document.getElementById("canvasVideo");
-let ctx = canvas.getContext("2d");
-let ctxVideo = canvasVideo.getContext("2d");
-let imageLoader = document.getElementById("imageLoader");
+const canvas = new Canvas(document.getElementById("canvas"));
+const canvasVideo = new Canvas(document.getElementById("canvasVideo"));
+const imageLoader = document.getElementById("imageLoader");
 let auxImage;
 
-let startTime;
-
-let width, height;
-
-let mouse;
-
-//video lets
-let video = document.getElementById("video");
+const video = document.getElementById("video");
 let numberOfCluster = 2;
 
 let clusters = [];
 let phi = [];
 let sigmas = [];
 
-let numOfStates = 4;
-let clustersState = [];
+const numOfStates = 4;
+const clustersState = [];
 
 let numOfSamples = Math.floor(
   canvas.width *
@@ -36,11 +30,7 @@ let numOfSamples = Math.floor(
 );
 
 let averageColor = [0, 0, 0];
-
-let time = 0;
-
 let isLearning = true;
-
 let memoryData = [];
 let maxDataFrames = 1;
 let memoryIndex = 0;
@@ -50,227 +40,6 @@ let memoryIndex = 0;
  *                                          UI                                          *
  *                                                                                      */
 //========================================================================================
-
-function buildRow(name, rgb, clusterId) {
-  rgb[0] = Math.floor(rgb[0]);
-  rgb[1] = Math.floor(rgb[1]);
-  rgb[2] = Math.floor(rgb[2]);
-
-  let row = document.createElement("tr");
-
-  let nameCol = document.createElement("td");
-  nameCol.innerHTML = name;
-  row.appendChild(nameCol);
-
-  let colorCol = document.createElement("td");
-  colorCol.innerHTML = rgb;
-  colorCol.style.background =
-    "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
-  colorCol.style.color = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
-  colorCol.id = "cluster" + clusterId;
-  row.appendChild(colorCol);
-
-  let layerCol = document.createElement("td");
-  let auxButton = document.createElement("input");
-  auxButton.setAttribute("type", "button");
-  layerCol.appendChild(auxButton);
-  auxButton.value = clusterId == -1 ? "" : clustersState[clusterId];
-  auxButton.numId = clusterId;
-  auxButton.onclick = function () {
-    if (this.numId == -1) {
-      //do nothing
-    } else {
-      clustersState[this.numId] = (clustersState[this.numId] + 1) % numOfStates;
-      this.value = "" + clustersState[this.numId];
-    }
-  };
-  row.appendChild(layerCol);
-
-  return row;
-}
-
-function buildRowSoft(name, rgb) {
-  rgb[0] = Math.floor(rgb[0]);
-  rgb[1] = Math.floor(rgb[1]);
-  rgb[2] = Math.floor(rgb[2]);
-  document.getElementById(
-    name
-  ).style.background = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-  document.getElementById(
-    name
-  ).style.color = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-}
-
-function updateTableSoft() {
-  buildRowSoft("cluster-1", averageColor);
-  for (let i = 0; i < clusters.length; i++) {
-    buildRowSoft("cluster" + i, clusters[i]);
-  }
-}
-
-function updateTable() {
-  let table = document.getElementById("clusterTable");
-  let n = table.childNodes.length;
-  for (let i = 0; i < n; i++) {
-    table.removeChild(table.childNodes[0]);
-  }
-  table.appendChild(buildRow("Average", averageColor, -1));
-  for (let i = 0; i < clusters.length; i++) {
-    table.appendChild(buildRow("Cluster " + i, clusters[i], i));
-  }
-}
-
-function getImageIndex(x, size) {
-  return 4 * (size[0] * x[0] + x[1]);
-}
-
-/*
- * x is a vector
- * size is a vector where x-coord is width and y-coord is height
- */
-function getPxlData(x, data, size) {
-  let rgba = [];
-  let index = getImageIndex(x, size);
-  rgba[0] = data[index];
-  rgba[1] = data[index + 1];
-  rgba[2] = data[index + 2];
-  rgba[3] = data[index + 3];
-  return rgba;
-}
-
-function drawPxl(x, data, rgb) {
-  let size = [width, height];
-  let index = getImageIndex(x, size);
-  data[index] = rgb[0];
-  data[index + 1] = rgb[1];
-  data[index + 2] = rgb[2];
-  data[index + 3] = rgb[3];
-}
-
-/*
- * 3D vectors
- */
-function vec3(x, y, z) {
-  let ans = [];
-  ans[0] = x;
-  ans[1] = y;
-  ans[2] = z;
-  return ans;
-}
-
-let add = function (u, v) {
-  let ans = [];
-  ans[0] = u[0] + v[0];
-  ans[1] = u[1] + v[1];
-  ans[2] = u[2] + v[2];
-  return ans;
-};
-
-let diff = function (u, v) {
-  let ans = [];
-  ans[0] = u[0] - v[0];
-  ans[1] = u[1] - v[1];
-  ans[2] = u[2] - v[2];
-  return ans;
-};
-
-let scalarMult = function (s, v) {
-  let ans = [];
-  ans[0] = s * v[0];
-  ans[1] = s * v[1];
-  ans[2] = s * v[2];
-  return ans;
-};
-
-let squaredNorm = function (v) {
-  return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-};
-
-let myNorm = function (v) {
-  return Math.sqrt(squaredNorm(v));
-};
-
-let myPNorm = function (v, p) {
-  return powInt(v[0], p) + powInt(v[1], p) + powInt(v[2], p);
-};
-
-let normalize = function (v) {
-  if (v[0] !== 0.0 && v[1] !== 0.0 && v[2] !== 0.0) {
-    return scalarMult(1 / myNorm(v), v);
-  } else {
-    return v;
-  }
-};
-
-let innerProd = function (u, v) {
-  return u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
-};
-/**
- * return product between the matrix formed by (u,v,w) and x;
- * */
-let matrixProd = function (u, v, w, x) {
-  return add(
-    add(scalarMult(x[0], u), scalarMult(x[1], v)),
-    scalarMult(x[2], w)
-  );
-};
-
-/**
- *  Init
- **/
-function initClusters() {
-  clusters = [];
-  for (let i = 0; i < numberOfCluster; i++) {
-    clusters[i] = vec3(
-      255 * Math.random(),
-      255 * Math.random(),
-      255 * Math.random()
-    );
-    clustersState[i] = 1;
-    sigmas[i] = 255 * Math.random();
-    phi[i] = 1.0 / numberOfCluster;
-  }
-}
-
-function handleImage(e) {
-  let reader = new FileReader();
-  reader.onload = function (event) {
-    auxImage = new Image();
-    auxImage.width = canvas.width;
-    auxImage.height = canvas.height;
-    auxImage.onload = function () {
-      isVideo = false;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctxVideo.clearRect(0, 0, canvas.width, canvas.height);
-    };
-    auxImage.src = event.target.result;
-  };
-  reader.readAsDataURL(e.target.files[0]);
-}
-
-function init() {
-  initUI();
-  window.addEventListener("resize", resize);
-  resize();
-
-  startTime = new Date().getTime();
-  width = canvas.width;
-  height = canvas.height;
-  mouse = [0, 0];
-  // https://davidwalsh.name/browser-camera
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then(function (stream) {
-        //video.src = window.URL.createObjectURL(stream);
-        video.srcObject = stream;
-        video.play();
-      });
-  }
-  initClusters();
-  updateTable();
-  imageLoader.addEventListener("change", handleImage, false);
-}
 
 function resize() {
   if (window.innerWidth >= window.innerHeight) {
@@ -345,6 +114,161 @@ function createResetButtonUI() {
   return input;
 }
 
+function buildRow(name, rgb, clusterId) {
+  rgb[0] = Math.floor(rgb[0]);
+  rgb[1] = Math.floor(rgb[1]);
+  rgb[2] = Math.floor(rgb[2]);
+
+  let row = document.createElement("tr");
+
+  let nameCol = document.createElement("td");
+  nameCol.innerHTML = name;
+  row.appendChild(nameCol);
+
+  let colorCol = document.createElement("td");
+  colorCol.innerHTML = rgb;
+  colorCol.style.background =
+    "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
+  colorCol.style.color = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
+  colorCol.id = "cluster" + clusterId;
+  row.appendChild(colorCol);
+
+  let layerCol = document.createElement("td");
+  let auxButton = document.createElement("input");
+  auxButton.setAttribute("type", "button");
+  layerCol.appendChild(auxButton);
+  auxButton.value = clusterId == -1 ? "" : clustersState[clusterId];
+  auxButton.numId = clusterId;
+  auxButton.onclick = function () {
+    if (this.numId == -1) {
+      //do nothing
+    } else {
+      clustersState[this.numId] = (clustersState[this.numId] + 1) % numOfStates;
+      this.value = "" + clustersState[this.numId];
+    }
+  };
+  row.appendChild(layerCol);
+
+  return row;
+}
+
+function buildRowSoft(name, rgb) {
+  rgb[0] = Math.floor(rgb[0]);
+  rgb[1] = Math.floor(rgb[1]);
+  rgb[2] = Math.floor(rgb[2]);
+  document.getElementById(
+    name
+  ).style.background = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+  document.getElementById(
+    name
+  ).style.color = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+}
+
+function updateTableSoft() {
+  buildRowSoft("cluster-1", averageColor);
+  for (let i = 0; i < clusters.length; i++) {
+    buildRowSoft("cluster" + i, clusters[i]);
+  }
+}
+
+function updateTable() {
+  let table = document.getElementById("clusterTable");
+  let n = table.childNodes.length;
+  for (let i = 0; i < n; i++) {
+    table.removeChild(table.childNodes[0]);
+  }
+  table.appendChild(buildRow("Average", averageColor, -1));
+  for (let i = 0; i < clusters.length; i++) {
+    table.appendChild(buildRow("Cluster " + i, clusters[i], i));
+  }
+}
+
+//========================================================================================
+/*                                                                                      *
+ *                                      3D VECTORS                                      *
+ *                                                                                      */
+//========================================================================================
+
+function vec3(x, y, z) {
+  let ans = [];
+  ans[0] = x;
+  ans[1] = y;
+  ans[2] = z;
+  return ans;
+}
+
+let add = function (u, v) {
+  let ans = [];
+  ans[0] = u[0] + v[0];
+  ans[1] = u[1] + v[1];
+  ans[2] = u[2] + v[2];
+  return ans;
+};
+
+let diff = function (u, v) {
+  let ans = [];
+  ans[0] = u[0] - v[0];
+  ans[1] = u[1] - v[1];
+  ans[2] = u[2] - v[2];
+  return ans;
+};
+
+let scalarMult = function (s, v) {
+  let ans = [];
+  ans[0] = s * v[0];
+  ans[1] = s * v[1];
+  ans[2] = s * v[2];
+  return ans;
+};
+
+let squaredNorm = function (v) {
+  return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+};
+
+let myNorm = function (v) {
+  return Math.sqrt(squaredNorm(v));
+};
+
+//========================================================================================
+/*                                                                                      *
+ *                                         UTILS                                        *
+ *                                                                                      */
+//========================================================================================
+
+function getImageIndex(x, size) {
+  return 4 * (size[0] * x[0] + x[1]);
+}
+
+/*
+ * x is a vector
+ * size is a vector where x-coord is width and y-coord is height
+ */
+function getPxlData(x, data, size) {
+  let rgba = [];
+  let index = getImageIndex(x, size);
+  rgba[0] = data[index];
+  rgba[1] = data[index + 1];
+  rgba[2] = data[index + 2];
+  rgba[3] = data[index + 3];
+  return rgba;
+}
+
+function handleImage(e) {
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    auxImage = new Image();
+    auxImage.width = canvas.width;
+    auxImage.height = canvas.height;
+    auxImage.onload = function () {
+      isVideo = false;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctxVideo.clearRect(0, 0, canvas.width, canvas.height);
+    };
+    auxImage.src = event.target.result;
+  };
+  reader.readAsDataURL(e.target.files[0]);
+}
+
 function samplingData(data, numOfSamples) {
   let size = [data.width, data.height];
   for (let i = 0; i < numOfSamples; i++) {
@@ -361,7 +285,7 @@ function samplingData(data, numOfSamples) {
 
 //========================================================================================
 /*                                                                                      *
- *                                        KMeans                                        *
+ *                                        KMEANS                                        *
  *                                                                                      */
 //========================================================================================
 
@@ -545,20 +469,42 @@ function runGMM(
  *                                                                                      */
 //========================================================================================
 
-function myStateMachine(rgb, clusterIndex) {
-  let state = clustersState[clusterIndex];
-  switch (state) {
-    case 0:
-      return rgb;
-    case 1:
-      return clusters[clusterIndex];
-    case 2:
-      return [0, 0, 0];
-    case 3:
-      return [255, 255, 255];
-    default:
-      return rgb;
+function initClusters() {
+  clusters = [];
+  for (let i = 0; i < numberOfCluster; i++) {
+    clusters[i] = vec3(
+      255 * Math.random(),
+      255 * Math.random(),
+      255 * Math.random()
+    );
+    clustersState[i] = 1;
+    sigmas[i] = 255 * Math.random();
+    phi[i] = 1.0 / numberOfCluster;
   }
+}
+
+function init() {
+  initUI();
+  window.addEventListener("resize", resize);
+  resize();
+  createVideo(video);
+  initClusters();
+  updateTable();
+  imageLoader.addEventListener("change", handleImage, false);
+}
+
+function outputFromState(rgb, clusterIndex) {
+  const state = clustersState[clusterIndex];
+  const state2color = {
+    0: rgb,
+    1: clusters[clusterIndex],
+    2: [0, 0, 0],
+    3: [255, 255, 255],
+  };
+  if (state in state2color) {
+    return state2color[state];
+  }
+  return rgb;
 }
 
 function getInput() {
@@ -569,44 +515,34 @@ function getInput() {
 }
 
 function draw() {
-  let dt = 1e-3 * (new Date().getTime() - startTime);
-  startTime = new Date().getTime();
-  time += dt;
-
-  let input = getInput();
-  ctxVideo.drawImage(input, 0, 0, width, height);
-
-  let videoImage = ctxVideo.getImageData(
-    0,
-    0,
-    canvasVideo.width,
-    canvasVideo.height
-  );
-
-  let stateMachine = myStateMachine;
+  const input = getInput();
+  canvasVideo.paintImage(input);
 
   const yourSelect = document.getElementById("selectAlgorithm");
-  if (yourSelect.options[yourSelect.selectedIndex].value === "Kmeans") {
-    runKmeans(
-      videoImage,
-      classifyData,
-      updateClusters,
-      drawClusters,
-      stateMachine
-    );
-  } else {
-    runGMM(
-      videoImage,
-      classifyDataGMM,
-      updateClustersGMM,
-      drawClustersGMM,
-      stateMachine
-    );
+  const selectedAlgorithm = yourSelect.options[yourSelect.selectedIndex].value;
+  const algorithm2Action = {
+    Kmeans: () =>
+      runKmeans(
+        videoImage,
+        classifyData,
+        updateClusters,
+        drawClusters,
+        outputFromState
+      ),
+    GMM: () =>
+      runGMM(
+        videoImage,
+        classifyDataGMM,
+        updateClustersGMM,
+        drawClustersGMM,
+        outputFromState
+      ),
+  };
+  if (selectedAlgorithm in algorithm2Action) {
+    algorithm2Action[selectedAlgorithm]();
   }
-  ctx.putImageData(videoImage, 0, 0);
-
+  canvas.putImageData(videoImage, 0, 0);
   updateTableSoft();
-
   requestAnimationFrame(draw);
 }
 
