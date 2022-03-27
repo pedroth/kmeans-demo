@@ -261,8 +261,8 @@ function handleImage(e) {
     auxImage.height = canvas.height;
     auxImage.onload = function () {
       isVideo = false;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctxVideo.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.fill();
+      canvasVideo.fill();
     };
     auxImage.src = event.target.result;
   };
@@ -350,6 +350,7 @@ function drawClusters(image, classifyFunction, stateMachine) {
     data[i] = newColor[0];
     data[i + 1] = newColor[1];
     data[i + 2] = newColor[2];
+    data[i + 3] = 255;
   }
 }
 
@@ -430,6 +431,7 @@ function drawClustersGMM(image, classifyFunction, stateMachine) {
     data[i] = newColor[0];
     data[i + 1] = newColor[1];
     data[i + 2] = newColor[2];
+    data[i + 3] = 255;
   }
 }
 
@@ -517,6 +519,7 @@ function getInput() {
 function draw() {
   const input = getInput();
   canvasVideo.paintImage(input);
+  const videoImage = canvasVideo.image;
 
   const yourSelect = document.getElementById("selectAlgorithm");
   const selectedAlgorithm = yourSelect.options[yourSelect.selectedIndex].value;
@@ -541,7 +544,8 @@ function draw() {
   if (selectedAlgorithm in algorithm2Action) {
     algorithm2Action[selectedAlgorithm]();
   }
-  canvas.putImageData(videoImage, 0, 0);
+  canvas.image = videoImage;
+  canvas.paint();
   updateTableSoft();
   requestAnimationFrame(draw);
 }

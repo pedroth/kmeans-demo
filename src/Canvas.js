@@ -230,6 +230,13 @@ export default class Canvas {
    */
   paint() {
     this.ctx.putImageData(this.image, 0, 0);
+    this.image = this.ctx.getImageData(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
+    this.data = this.image.data;
     return this;
   }
 
@@ -238,7 +245,14 @@ export default class Canvas {
    * @param {ImageDOM | VideoDOM} image
    */
   paintImage(image) {
-    this.ctx.putImageData(image, 0, 0);
+    this.ctx.drawImage(image, 0, 0, this.width, this.height);
+    this.image = this.ctx.getImageData(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
+    this.data = this.image.data;
     return this;
   }
 
