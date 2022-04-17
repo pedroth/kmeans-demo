@@ -7,6 +7,23 @@
 import Canvas from "./src/Canvas.js";
 import { createVideo, powInt } from "./src/Utils.js";
 
+const uiState = {
+  imageFile: undefined,
+  numberOfClusters: 2,
+  isLearning: true,
+  samplePercentage: Number.parseFloat(
+    document.getElementById("alphaValue").innerText
+  ),
+  clustersState: [],
+  numberOfClusterStates: 4,
+};
+
+const appState = {
+  canvas: new Canvas(document.getElementById("canvas")),
+  canvasVideo: new Canvas(document.getElementById("canvasVideo")),
+  input: undefined,
+};
+
 let isVideo = true;
 const canvas = new Canvas(document.getElementById("canvas"));
 const canvasVideo = new Canvas(document.getElementById("canvasVideo"));

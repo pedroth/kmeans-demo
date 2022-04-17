@@ -12,7 +12,7 @@ v x
 H
 */
 
-import { Vec2 } from "./Vec3.js";
+import { Vec2 } from "./Vec.js";
 
 export default class Canvas {
   /**
@@ -226,10 +226,13 @@ export default class Canvas {
 
   /**
    * Paint canvas
+   *
+   * @param {ImageData} imageData
    * @returns {Canvas}
    */
-  paint() {
-    this.ctx.putImageData(this.image, 0, 0);
+  paint(imageData) {
+    const data = imageData || this.image;
+    this.ctx.putImageData(data, 0, 0);
     this.image = this.ctx.getImageData(
       0,
       0,

@@ -143,6 +143,14 @@ export default class Vec {
     }
     return new Vec(vec, true);
   };
+
+  static RANDOM = (n) => {
+    const v = BUILD_VEC(n);
+    for (let i = 0; i < n; i++) {
+      v[i] = Math.random();
+    }
+    return new Vec(v, true);
+  };
 }
 
 export const BUILD_VEC = (n) => new ARRAY_TYPES.Float64Array(n);

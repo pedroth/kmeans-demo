@@ -1,6 +1,6 @@
 import Scene from "./Scene.js";
 import { matrixTransposeProd } from "./Utils.js";
-import { Vec3, Vec2 } from "./Vec3.js";
+import { Vec3, Vec2 } from "./Vec.js";
 
 export default class Camera {
   /**
