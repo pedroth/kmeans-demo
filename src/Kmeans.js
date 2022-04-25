@@ -1,4 +1,4 @@
-import Vec from "./Vec";
+import Vec from "./Vec.js";
 
 export default class Kmeans {
   constructor(k, dim) {
