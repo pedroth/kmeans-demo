@@ -8,14 +8,15 @@ import Canvas from "./src/Canvas.js";
 import GUI from "./src/GUI.js";
 import { createVideo, powInt } from "./src/Utils.js";
 import Kmeans from "./src/Kmeans.js";
+import GMM from "./src/GMM.js";
 
 function createAppState() {
   return {
     imageFile: undefined,
-    algorithm: new Kmeans(2),
+    algorithmSelect: ALGORITHMS.kmeans,
     numberOfClusters: 2,
-    isLearning: true,
     samplePercentage: 0.7,
+    isLearning: true,
     clustersState: [],
   };
 }
@@ -34,6 +35,17 @@ const CLUSTERS_STATE = {
   originalColor: 2,
   white: 3,
 };
+
+const ALGORITHMS = {
+  kmeans: (k) => new Kmeans(k),
+  gmm: (k) => new GMM(k),
+};
+
+//========================================================================================
+/*                                                                                      *
+ *                                          UI                                          *
+ *                                                                                      */
+//========================================================================================
 
 function createAppTitle() {
   const h1 = document.createElement("h1");
@@ -59,6 +71,7 @@ function createCanvas({ width, height }) {
 
 function createCanvasSpace() {
   const canvasSpace = { dom: document.createElement("div") };
+  canvasSpace.dom.setAttribute("class", "canvasSpace");
   const canvasInput = createCanvas({ width: 320, height: 240 });
   const canvasOutput = createCanvas({ width: 320, height: 240 });
   canvasSpace.dom.appendChild(canvasInput);
@@ -70,56 +83,91 @@ function createCanvasSpace() {
 }
 
 function createInputSpace(appState) {
-  const gui = GUI.fromForm([
-    GUI.file({
-      id: "imageFile",
-      label: "Image File",
-      extensions: ["jpeg", "jpg", "png"],
-    }),
-    GUI.selector({
-      id: "algorithmSelect",
-      label: "Clustering method",
-      options: ["K-means", "GMM"],
-      value: "K-means",
-    }),
-    GUI.number({ id: "numberOfClusters", label: "Number of clusters", min: 0 }),
-    GUI.range({
-      id: "trainingPercentage",
-      label: "Training data percentage",
-      min: 0,
-      step: 0.01,
-      max: 1,
-      withInput: true,
-    }),
-    GUI.object({
-      children: [
-        GUI.toggle({ label: "Is Learning", value: true }),
-        GUI.button({ label: "Reset", onClick: () => resetAppState(appState) }),
-      ],
-      layout: "row",
-    }),
-  ]);
-  gui.onChange((newState) => {
-    // update appState
-  });
-  return gui;
+  const gui = GUI.builder()
+    .add(
+      // GUI.file("imageFile")
+      //   .value(appState.imageFile)
+      //   .label("Image File")
+      //   .extensions("jpeg", "jpg", "png"),
+      // GUI.selector("algorithmSelect")
+      //   .value(appState.algorithmSelect)
+      //   .label("Clustering method")
+      //   .options(ALGORITHMS),
+      // GUI.number("numberOfClusters")
+      //   .value(appState.numberOfClusters)
+      //   .label("Number of clusters")
+      //   .min(1),
+      // GUI.range("samplePercentage")
+      //   .value(appState.samplePercentage)
+      //   .label("Training data percentage")
+      //   .min(0)
+      //   .max(1)
+      //   .step(0.01),
+      // GUI.object("learning")
+      //   .label("Learning")
+      //   .children(
+      //     GUI.boolean("isLearning")
+      //       .value(appState.isLearning)
+      //       .label("Is Learning"),
+      //     GUI.button("resetButton")
+      //       .label("Reset")
+      //       .onClick(() => resetAppState(appState))
+      //   )
+    )
+    .onChange((newState) => {
+      Object.keys(newState).forEach((key) => {
+        if (key === "learning") {
+          appState["isLearning"] = newState.learning.isLearning;
+          return;
+        }
+        if (key in appState) {
+          appState[key] = newState[key];
+        }
+      });
+    })
+    .build();
+  return gui.getDOM();
 }
 
-function createOutputSpace() {}
+function createOutputSpace() {
+  return document.createElement("div");
+}
 
 function createUI(appState, domSpace) {
   const UI = {};
   UI.video = createVideoUI();
   UI.canvasSpace = createCanvasSpace();
   UI.input = createInputSpace(appState);
-  // UI.output = createOutputSpace(UI, appState);
+  UI.output = createOutputSpace(UI, appState);
   domSpace.appendChild(createAppTitle());
   domSpace.appendChild(UI.video);
-  domSpace.appendChild(UI.canvasSpace);
+  domSpace.appendChild(UI.canvasSpace.dom);
   domSpace.appendChild(UI.input);
-  // domSpace.appendChild(UI.output);
+  domSpace.appendChild(UI.output);
   return UI;
 }
+
+function createToolBar() {
+  const tools = document.createElement("div");
+  tools.setAttribute("class", "tools");
+  const codeIcon = document.createElement("i");
+  codeIcon.setAttribute("class", "material-icons");
+  const codeLink = document.createElement("a");
+  codeLink.setAttribute("title", "Github");
+  codeLink.setAttribute("href", "https://github.com/pedroth/kmeans-demo");
+  codeLink.setAttribute("target", "_blank");
+  codeLink.setAttribute("rel", "noopener");
+  codeLink.innerText = "code";
+  codeIcon.appendChild(codeLink);
+  tools.appendChild(codeIcon);
+  document.body.appendChild(tools);
+}
+
+//========================================================================================
+/*                                                                                      *
+ *                                         MAIN                                         *
+ *                                                                                      */
+//========================================================================================
 
 function isLearning(UI) {}
 
@@ -143,7 +191,8 @@ function clusterVideoColors(UI, appState) {
 }
 
 (() => {
+  createToolBar();
   const appState = createAppState();
   const UI = createUI(appState, document.getElementById("app"));
-  requestAnimationFrame(() => clusterVideoColors(UI, appState));
+  // requestAnimationFrame(() => clusterVideoColors(UI, appState));
 })();

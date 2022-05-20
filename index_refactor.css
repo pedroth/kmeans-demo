@@ -50,18 +50,18 @@ body {
   font-size: 2.5rem;
 }
 
+.canvasSpace {
+  display: flex;
+  justify-content: space-evenly;
+}
+
 #app {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
 
-#canvasSpace {
-  display: flex;
-  justify-content: space-evenly;
-}
-
-#canvas {
+.canvas {
   flex-grow: 1;
 }
 
