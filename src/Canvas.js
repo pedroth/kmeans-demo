@@ -37,6 +37,10 @@ export default class Canvas {
     this.height = this.canvas.height;
   }
 
+  getData() {
+    return this.data;
+  }
+
   /**
    *
    * @param {Array4} rgba
@@ -245,10 +249,10 @@ export default class Canvas {
 
   /**
    * Paint canvas with with image
-   * @param {ImageDOM | VideoDOM} image
+   * @param {ImageDOM | VideoDOM} media
    */
-  paintImage(image) {
-    this.ctx.drawImage(image, 0, 0, this.width, this.height);
+  paintMedia(media) {
+    this.ctx.drawImage(media, 0, 0, this.width, this.height);
     this.image = this.ctx.getImageData(
       0,
       0,

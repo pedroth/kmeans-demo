@@ -1,6 +1,6 @@
 import { Vec3 } from "./Vec.js";
 
-export function createVideo(domVideo) {
+export function createWebCamFromVideo(domVideo) {
   // https://davidwalsh.name/browser-camera
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices
@@ -11,6 +11,7 @@ export function createVideo(domVideo) {
         domVideo.play();
       });
   }
+  return domVideo;
 }
 
 export function max(v) {

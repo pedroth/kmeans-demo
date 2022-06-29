@@ -5,7 +5,7 @@
 //========================================================================================
 
 import Canvas from "./src/Canvas.js";
-import { createVideo, powInt } from "./src/Utils.js";
+import { createWebCamFromVideo, powInt } from "./src/Utils.js";
 
 const uiState = {
   imageFile: undefined,
@@ -506,7 +506,7 @@ function init() {
   initUI();
   window.addEventListener("resize", resize);
   resize();
-  createVideo(video);
+  createWebCamFromVideo(video);
   initClusters();
   updateTable();
   imageLoader.addEventListener("change", handleImage, false);
@@ -535,7 +535,7 @@ function getInput() {
 
 function draw() {
   const input = getInput();
-  canvasVideo.paintImage(input);
+  canvasVideo.paintMedia(input);
   const videoImage = canvasVideo.image;
 
   const yourSelect = document.getElementById("selectAlgorithm");

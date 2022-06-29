@@ -6,9 +6,10 @@
 
 import Canvas from "./src/Canvas.js";
 import GUI from "./src/GUI.js";
-import { createVideo, powInt } from "./src/Utils.js";
+import { createWebCamFromVideo, powInt } from "./src/Utils.js";
 import Kmeans from "./src/Kmeans.js";
 import GMM from "./src/GMM.js";
+import { Vec3 } from "./src/Vec.js";
 
 function createAppState() {
   return {
@@ -54,11 +55,11 @@ function createAppTitle() {
 }
 
 function createVideoUI() {
-  const video = document.createElement("video");
-  video.setAttribute("width", 0);
-  video.setAttribute("height", 0);
-  video.setAttribute("autoplay", true);
-  return video;
+  const videoDOM = document.createElement("video");
+  videoDOM.setAttribute("width", 0);
+  videoDOM.setAttribute("height", 0);
+  videoDOM.setAttribute("autoplay", true);
+  return createWebCamFromVideo(videoDOM);
 }
 
 function createCanvas({ width, height }) {
@@ -85,34 +86,42 @@ function createCanvasSpace() {
 function createInputSpace(appState) {
   const gui = GUI.builder()
     .add(
-      // GUI.file("imageFile")
-      //   .value(appState.imageFile)
-      //   .label("Image File")
-      //   .extensions("jpeg", "jpg", "png"),
-      // GUI.selector("algorithmSelect")
-      //   .value(appState.algorithmSelect)
-      //   .label("Clustering method")
-      //   .options(ALGORITHMS),
-      // GUI.number("numberOfClusters")
-      //   .value(appState.numberOfClusters)
-      //   .label("Number of clusters")
-      //   .min(1),
-      // GUI.range("samplePercentage")
-      //   .value(appState.samplePercentage)
-      //   .label("Training data percentage")
-      //   .min(0)
-      //   .max(1)
-      //   .step(0.01),
-      // GUI.object("learning")
-      //   .label("Learning")
-      //   .children(
-      //     GUI.boolean("isLearning")
-      //       .value(appState.isLearning)
-      //       .label("Is Learning"),
-      //     GUI.button("resetButton")
-      //       .label("Reset")
-      //       .onClick(() => resetAppState(appState))
-      //   )
+      GUI.file("imageFile")
+        .value(appState.imageFile)
+        .label("Image File")
+        .extensions("jpeg", "jpg", "png")
+        .onload((e) => {
+          console.log("image file event", e);
+        }),
+      GUI.selector("algorithmSelect")
+        .value(appState.algorithmSelect)
+        .label("Clustering method")
+        .options(
+          Object.keys(ALGORITHMS).map((option) => ({
+            label: option,
+            value: option,
+          }))
+        ),
+      GUI.number("numberOfClusters")
+        .value(appState.numberOfClusters)
+        .label("Number of clusters")
+        .min(1),
+      GUI.range("samplePercentage")
+        .value(appState.samplePercentage)
+        .label("Training data percentage")
+        .min(0)
+        .max(1)
+        .step(0.01),
+      GUI.object("learning")
+        .label("Learning")
+        .children(
+          GUI.boolean("isLearning")
+            .value(appState.isLearning)
+            .label("Is Learning"),
+          GUI.button("resetButton")
+            .label("Reset")
+            .onClick(() => resetAppState(appState))
+        )
     )
     .onChange((newState) => {
       Object.keys(newState).forEach((key) => {
@@ -120,10 +129,15 @@ function createInputSpace(appState) {
           appState["isLearning"] = newState.learning.isLearning;
           return;
         }
+        if (key === "algorithmSelect") {
+          appState["algorithmSelect"] = ALGORITHMS[newState.algorithmSelect];
+          return;
+        }
         if (key in appState) {
           appState[key] = newState[key];
         }
       });
+      console.log("debug new state", appState);
     })
     .build();
   return gui.getDOM();
@@ -147,20 +161,39 @@ function createUI(appState, domSpace) {
   return UI;
 }
 
+function createToolWithLink({ url, title, text }) {
+  const icon = document.createElement("i");
+  icon.setAttribute("class", "material-icons");
+  const link = document.createElement("a");
+  link.setAttribute("title", title);
+  link.setAttribute("href", url);
+  link.setAttribute("target", "_blank");
+  link.setAttribute("rel", "noopener");
+  link.innerText = text;
+  icon.appendChild(link);
+  return icon;
+}
+
 function createToolBar() {
   const tools = document.createElement("div");
   tools.setAttribute("class", "tools");
-  const codeIcon = document.createElement("i");
-  codeIcon.setAttribute("class", "material-icons");
-  const codeLink = document.createElement("a");
-  codeLink.setAttribute("title", "Github");
-  codeLink.setAttribute("href", "https://github.com/pedroth/kmeans-demo");
-  codeLink.setAttribute("target", "_blank");
-  codeLink.setAttribute("rel", "noopener");
-  codeLink.innerText = "code";
-  codeIcon.appendChild(codeLink);
+  const codeIcon = createToolWithLink({
+    url: "https://github.com/pedroth/kmeans-demo",
+    title: "Github",
+    text: "code",
+  });
   tools.appendChild(codeIcon);
   document.body.appendChild(tools);
+}
+
+function getCanvasInput(UI) {
+  const canvasInput = UI.canvasSpace.canvasInput;
+  return new Canvas(canvasInput);
+}
+
+function getCanvasOutput(UI) {
+  const canvasInput = UI.canvasSpace.canvasOutput;
+  return new Canvas(canvasInput);
 }
 
 //========================================================================================
@@ -169,24 +202,68 @@ function createToolBar() {
  *                                                                                      */
 //========================================================================================
 
-function isLearning(UI) {}
+function isLearning({ isLearning }) {
+  return isLearning;
+}
 
-function getAlgorithm(UI) {}
+function getAlgorithm({ numberOfClusters, algorithmSelect }) {
+  return algorithmSelect(numberOfClusters);
+}
 
-function paintData(data, dataClassification, canvas) {}
+function paintData({
+  inputData,
+  dataClassification,
+  canvasOut,
+  clusterAlgorithm,
+  appState,
+}) {
+  const dataOut = canvasOut.getData();
+  let k = 0;
+  for (let i = 0; i < dataOut.length; i += 4) {
+    const classification = dataClassification[k++];
+    dataOut[i] = 255;
+    dataOut[i + 1] = 0;
+    dataOut[i + 2] = 0;
+    dataOut[i + 3] = 255;
+  }
+  canvasOut.paint();
+}
+
+function getInputImage(UI) {
+  return UI.video;
+}
+
+function updateOutput(appState, outputDiv) {}
+
+function classifyData(algorithm, data) {
+  const dataClassification = Array(data.length / 4);
+  let k = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    let rgb = Vec3(data[i], data[i + 1], data[i + 2]);
+    dataClassification[k++] = algorithm.predict(rgb);
+  }
+  return dataClassification;
+}
 
 function clusterVideoColors(UI, appState) {
   const canvasIn = getCanvasInput(UI);
-  const inputImage = getInputImage();
-  canvasIn.paintImage(inputImage);
-  const data = canvasIn.getData();
+  const canvasOut = getCanvasOutput(UI);
+  const inputImage = getInputImage(UI);
+  canvasIn.paintMedia(inputImage);
+  const inputData = canvasIn.getData();
   const clusterAlgorithm = getAlgorithm(appState);
-  if (isLearning(UI)) {
-    clusterAlgorithm.update(data);
+  if (isLearning(appState)) {
+    clusterAlgorithm.update(inputData);
   }
-  const dataClassification = clusterAlgorithm.predict(data);
-  paintData(data, dataClassification, canvasOut);
-  updateOutputTable(clusterAlgorithm, outputTable);
+  const dataClassification = classifyData(clusterAlgorithm, inputData);
+  paintData({
+    inputData,
+    dataClassification,
+    canvasOut,
+    clusterAlgorithm,
+    appState,
+  });
+  updateOutput(clusterAlgorithm, UI.output);
   requestAnimationFrame(() => clusterVideoColors(UI, appState));
 }
 
@@ -194,5 +271,5 @@ function clusterVideoColors(UI, appState) {
   createToolBar();
   const appState = createAppState();
   const UI = createUI(appState, document.getElementById("app"));
-  // requestAnimationFrame(() => clusterVideoColors(UI, appState));
+  requestAnimationFrame(() => clusterVideoColors(UI, appState));
 })();

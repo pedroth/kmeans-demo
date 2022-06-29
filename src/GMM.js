@@ -1,3 +1,5 @@
+import Vec from "./Vec.js";
+
 export default class GMM {
   constructor(k, dim) {
     this.k = k;
@@ -14,14 +16,14 @@ export default class GMM {
 
   /**
    *
-   * @param {Array<Vec3>} data
+   * @param {Array<Vec>} data
    * @returns {Kmeans}
    */
   update(data) {}
 
   /**
    *
-   * @param {Array<Vec3>} data
+   * @param {Vec} data
    * @returns {Array<Int>}
    */
   classify(data) {}

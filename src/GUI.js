@@ -1,30 +1,37 @@
 class GUI {
   constructor(schema, onChangeLambda) {
+    this.schema = schema;
     this.state = this.buildStateFromSchema(schema);
     this.id2key = this.buildId2KeyMapFromState(this.state);
     this.DOM = this.buildDOMFromSchema(schema);
+    this.onChangeLambda = onChangeLambda;
   }
 
   getDOM() {
     return this.DOM;
   }
 
-  setValueWithKey(key, value) {
+  setValueWithKey = (key, value) => {
     try {
       const keys = this.id2key[key];
       const lastIndex = keys.length - 1;
-      let obj = undefined;
+      let objValue = undefined;
       for (let i = 0; i < lastIndex; i++) {
-        obj = this.state[keys[i]];
+        objValue = this.state[keys[i]];
       }
-      obj[lastIndex] = value;
+      if (objValue === undefined) {
+        this.state[keys[0]] = value;
+      } else {
+        objValue[keys[lastIndex]] = value;
+      }
     } catch (error) {
       // do nothing
     }
+    this.onChangeLambda(this.state);
     return this;
-  }
+  };
 
-  getValueWithKey(key) {
+  getValueWithKey = (key) => {
     try {
       const keys = this.id2key[key];
       let value = undefined;
@@ -35,7 +42,7 @@ class GUI {
     } catch (error) {
       return undefined;
     }
-  }
+  };
 
   buildId2KeyMapFromState(state, parents = [], map = {}) {
     Object.keys(state).forEach((key) => {
@@ -168,6 +175,7 @@ class FileBuilder {
     this._value;
     this._label;
     this._extensions;
+    this._onload;
   }
 
   value(value) {
@@ -183,7 +191,27 @@ class FileBuilder {
     return this;
   }
 
-  buildDOM(onChange) {}
+  onload(onloadLambda) {
+    this._onload = onloadLambda;
+    return this;
+  }
+
+  buildDOM(setValueWithKey) {
+    const fileDOM = document.createElement("div");
+    const labelDOM = document.createElement("span");
+    const fileInnerDOM = document.createElement("input");
+    fileInnerDOM.setAttribute("type", "file");
+    fileInnerDOM.setAttribute("accept", this._extensions.join(", "));
+    fileInnerDOM.onchange = (e) => {
+      const reader = new FileReader();
+      reader.onload = this._onload;
+      reader.readAsDataURL(e.target.files[0]);
+    };
+    labelDOM.innerText = this._label;
+    fileDOM.appendChild(labelDOM);
+    fileDOM.appendChild(fileInnerDOM);
+    return fileDOM;
+  }
 }
 
 class SelectBuilder {
@@ -202,12 +230,29 @@ class SelectBuilder {
     this._label = label;
     return this;
   }
-  options(...options) {
+  options(options) {
     this._options = options;
     return this;
   }
 
-  buildDOM(onChange) {}
+  buildDOM(setValueWithKey) {
+    const selectDOM = document.createElement("div");
+    const selectLabel = document.createElement("span");
+    const selectInnerDOM = document.createElement("select");
+    this._options.forEach(({ label, value }) => {
+      const option = document.createElement("option");
+      option.setAttribute("value", value);
+      option.innerText = label;
+      selectInnerDOM.appendChild(option);
+    });
+    selectInnerDOM.onchange = (e) => {
+      setValueWithKey(this._id, e.target.selectedOptions[0].value);
+    };
+    selectLabel.innerText = this._label;
+    selectDOM.appendChild(selectLabel);
+    selectDOM.appendChild(selectInnerDOM);
+    return selectDOM;
+  }
 }
 class NumberBuilder {
   constructor(id) {
@@ -239,17 +284,22 @@ class NumberBuilder {
     return this;
   }
 
-  buildDOM(onChange) {
-    const input = document.createElement("input");
-    input.setAttribute("type", "number");
-    !min && input.setAttribute("min", min);
-    !max && input.setAttribute("max", min);
-    input.setAttribute("value", value || 0);
-    input.onchange = (e) => {
-      const value = e.target.value;
-      this._id;
-    };
-    return input;
+  buildDOM(setValueWithKey) {
+    const numberDOM = document.createElement("div");
+    const numberInput = document.createElement("input");
+    const numberLabel = document.createElement("span");
+    numberInput.setAttribute("type", "number");
+    numberInput.value = this._value;
+    !!this._min && numberInput.setAttribute("min", this._min);
+    !!this._max && numberInput.setAttribute("max", this._max);
+    !!this._step && numberInput.setAttribute("step", this._step);
+    numberInput.addEventListener("change", (e) => {
+      setValueWithKey(this._id, Number.parseFloat(e.target.value));
+    });
+    numberLabel.innerText = this._label;
+    numberDOM.appendChild(numberLabel);
+    numberDOM.appendChild(numberInput);
+    return numberDOM;
   }
 }
 
@@ -283,8 +333,38 @@ class RangeBuilder {
     return this;
   }
 
-  buildDOM(onChange) {
-    return document.createElement("div");
+  buildDOM(setValueWithKey) {
+    const numberDOM = document.createElement("div");
+    const rangeInput = document.createElement("input");
+    const numberInput = document.createElement("input");
+    const numberLabel = document.createElement("span");
+    numberInput.setAttribute("type", "number");
+    rangeInput.setAttribute("type", "range");
+    !!this._min && numberInput.setAttribute("min", this._min);
+    !!this._min && rangeInput.setAttribute("min", this._min);
+    !!this._max && numberInput.setAttribute("max", this._max);
+    !!this._max && rangeInput.setAttribute("max", this._max);
+    !!this._step && numberInput.setAttribute("step", this._step);
+    !!this._step && rangeInput.setAttribute("step", this._step);
+    numberInput.addEventListener("change", (e) => {
+      const value = Number.parseFloat(e.target.value);
+      rangeInput.value = value;
+      setValueWithKey(this._id, value);
+    });
+    rangeInput.addEventListener("change", (e) => {
+      const value = Number.parseFloat(e.target.value);
+      numberInput.value = value;
+      setValueWithKey(this._id, value);
+    });
+    numberLabel.innerText = this._label;
+
+    numberInput.value = this._value;
+    rangeInput.value = this._value;
+
+    numberDOM.appendChild(numberLabel);
+    numberDOM.appendChild(rangeInput);
+    numberDOM.appendChild(numberInput);
+    return numberDOM;
   }
 }
 
@@ -303,14 +383,14 @@ class BooleanBuilder {
     return this;
   }
 
-  buildDOM(setValueWithKey, getValueWithKey) {
+  buildDOM(setValueWithKey) {
     const boolDOM = document.createElement("div");
     const boolInput = document.createElement("input");
     const boolLabel = document.createElement("span");
     boolInput.setAttribute("type", "checkbox");
-    boolInput.value = this._value;
+    if (this._value) boolInput.setAttribute("checked", true);
     boolInput.addEventListener("change", (e) => {
-      console.log("debug change, ", e.target.checked, this._id);
+      setValueWithKey(this._id, e.target.checked);
     });
     boolLabel.innerText = this._label;
     boolDOM.appendChild(boolLabel);
@@ -335,7 +415,12 @@ class ButtonBuilder {
     return this;
   }
 
-  buildDOM(onChange) {}
+  buildDOM() {
+    const button = document.createElement("button");
+    button.innerText = this._label;
+    button.onclick = this._onClick;
+    return button;
+  }
 }
 
 class ObjectBuilder {
@@ -353,7 +438,22 @@ class ObjectBuilder {
     return this;
   }
 
-  buildDOM(onChange) {}
+  buildDOM(setValueWithKey) {
+    const objectDom = document.createElement("div");
+    if (!!this._label) {
+      const label = document.createElement("span");
+      label.innerText = this._label;
+      objectDom.appendChild(label);
+    }
+    const childrenSpace = document.createElement("div");
+    childrenSpace.setAttribute("style", "padding-left: 1em");
+    this._children.forEach((c) => {
+      const domChildren = c.buildDOM(setValueWithKey);
+      childrenSpace.appendChild(domChildren);
+    });
+    objectDom.appendChild(childrenSpace);
+    return objectDom;
+  }
 }
 
 export default GUI;

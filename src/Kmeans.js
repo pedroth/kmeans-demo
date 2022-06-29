@@ -15,17 +15,16 @@ export default class Kmeans {
    * @returns {Kmeans}
    */
   update(data) {
-    for(let i = 0; i < data.length; i++) {
-        
-    }
+    for (let i = 0; i < data.length; i++) {}
   }
 
   /**
    *
    * @param {Vec} data
-   * @returns {Array<Int>}
+   * @returns {Array<Number>}
    */
-  classify(x) {
+  predict(x) {
+    return [Math.random(), Math.random()];
     let kIndex = -1;
     let minDistance = Number.MAX_VALUE;
     for (let i = 0; i < this.k; i++) {
