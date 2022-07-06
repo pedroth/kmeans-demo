@@ -7,9 +7,9 @@
 import Canvas from "./src/Canvas.js";
 import GUI from "./src/GUI.js";
 import { createWebCamFromVideo, powInt } from "./src/Utils.js";
-import Kmeans from "./src/Kmeans.js";
-import GMM from "./src/GMM.js";
 import { Vec3 } from "./src/Vec.js";
+import ColorKmeans from "./src/shaders/ColorKmeans.js";
+import ColorGMM from "./src/shaders/ColorGMM.js";
 
 function createAppState() {
   return {
@@ -38,8 +38,8 @@ const CLUSTERS_STATE = {
 };
 
 const ALGORITHMS = {
-  kmeans: (k) => new Kmeans(k),
-  gmm: (k) => new GMM(k),
+  kmeans: (k) => new ColorKmeans(k),
+  gmm: (k) => new ColorGMM(k),
 };
 
 //========================================================================================
@@ -158,6 +158,14 @@ function createUI(appState, domSpace) {
   domSpace.appendChild(UI.canvasSpace.dom);
   domSpace.appendChild(UI.input);
   domSpace.appendChild(UI.output);
+  window.addEventListener("resize", () => {
+    const canvasSpace = UI.canvasSpace.dom;
+    if (window.innerWidth >= window.innerHeight) {
+      canvasSpace.style.flexDirection = "row";
+    } else {
+      canvasSpace.style.flexDirection = "column";
+    }
+  });
   return UI;
 }
 
@@ -221,10 +229,10 @@ function paintData({
   let k = 0;
   for (let i = 0; i < dataOut.length; i += 4) {
     const classification = dataClassification[k++];
-    dataOut[i] = 255;
-    dataOut[i + 1] = 0;
-    dataOut[i + 2] = 0;
-    dataOut[i + 3] = 255;
+    dataOut[i] = inputData[i];
+    dataOut[i + 1] = inputData[i + 1];
+    dataOut[i + 2] = inputData[i + 2];
+    dataOut[i + 3] = inputData[i + 3];
   }
   canvasOut.paint();
 }
@@ -245,31 +253,31 @@ function classifyData(algorithm, data) {
   return dataClassification;
 }
 
-function clusterVideoColors(UI, appState) {
+function clusterVideoImage(UI, appState) {
   const canvasIn = getCanvasInput(UI);
   const canvasOut = getCanvasOutput(UI);
   const inputImage = getInputImage(UI);
   canvasIn.paintMedia(inputImage);
-  const inputData = canvasIn.getData();
+  const imageData = canvasIn.getData();
   const clusterAlgorithm = getAlgorithm(appState);
   if (isLearning(appState)) {
-    clusterAlgorithm.update(inputData);
+    clusterAlgorithm.updateWithImageData(imageData);
   }
-  const dataClassification = classifyData(clusterAlgorithm, inputData);
+  const dataClassification = classifyData(clusterAlgorithm, imageData);
   paintData({
-    inputData,
+    inputData: imageData,
     dataClassification,
     canvasOut,
     clusterAlgorithm,
     appState,
   });
   updateOutput(clusterAlgorithm, UI.output);
-  requestAnimationFrame(() => clusterVideoColors(UI, appState));
+  requestAnimationFrame(() => clusterVideoImage(UI, appState));
 }
 
 (() => {
   createToolBar();
   const appState = createAppState();
   const UI = createUI(appState, document.getElementById("app"));
-  requestAnimationFrame(() => clusterVideoColors(UI, appState));
+  requestAnimationFrame(() => clusterVideoImage(UI, appState));
 })();
