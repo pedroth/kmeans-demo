@@ -250,6 +250,7 @@ export default class Canvas {
   /**
    * Paint canvas with with image
    * @param {ImageDOM | VideoDOM} media
+   * @returns {Canvas}
    */
   paintMedia(media) {
     this.ctx.drawImage(media, 0, 0, this.width, this.height);

@@ -1,7 +1,9 @@
-import Vec, { Vec3 } from "./Vec.js";
+import Vec from "../Vec.js";
 
 export default class Kmeans {
   constructor(k, dim) {
+    if (k === undefined || dim === undefined)
+      throw new Error("undefined constructor parameters");
     this.k = k;
     this.dim = dim;
     this.clusters = [];
@@ -35,7 +37,18 @@ export default class Kmeans {
     }
   }
 
-  _updateParameters() {}
+  _updateParameters(dataByClusters, data) {
+    for (let i = 0; i < this.k; i++) {
+      const clusterDataIndex = dataByClusters[i];
+      const n = clusterDataIndex.length;
+      let mu = Vec.ZERO(this.dim);
+      for (let j = 0; j < n; j++) {
+        const rgb = data[clusterDataIndex[j]];
+        mu = mu.add(rgb);
+      }
+      this.clusters[i] = n === 0 ? Vec.RANDOM(this.dim) : mu.scale(1.0 / n);
+    }
+  }
 
   //========================================================================================
   /*                                                                                      *
@@ -50,7 +63,7 @@ export default class Kmeans {
    */
   update(data) {
     const dataByClusters = this._clusterData(data);
-    this._updateParameters(dataByClusters);
+    this._updateParameters(dataByClusters, data);
     return this;
   }
 
@@ -69,6 +82,6 @@ export default class Kmeans {
         kIndex = i;
       }
     }
-    return Vec.e(this.dim)(kIndex);
+    return Vec.e(this.k)(kIndex);
   }
 }

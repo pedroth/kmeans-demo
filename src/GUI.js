@@ -12,6 +12,7 @@ class GUI {
   }
 
   setValueWithKey = (key, value) => {
+    const oldState = { ...this.state };
     try {
       const keys = this.id2key[key];
       const lastIndex = keys.length - 1;
@@ -27,7 +28,7 @@ class GUI {
     } catch (error) {
       // do nothing
     }
-    this.onChangeLambda(this.state);
+    this.onChangeLambda(this.state, oldState);
     return this;
   };
 
@@ -439,9 +440,9 @@ class ObjectBuilder {
   }
 
   buildDOM(setValueWithKey) {
-    const objectDom = document.createElement("div");
+    const objectDom = document.createElement("details");
     if (!!this._label) {
-      const label = document.createElement("span");
+      const label = document.createElement("summary");
       label.innerText = this._label;
       objectDom.appendChild(label);
     }
