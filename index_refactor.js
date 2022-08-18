@@ -6,7 +6,7 @@
 
 import Canvas from "./src/Canvas.js";
 import GUI from "./src/GUI.js";
-import { createWebCamFromVideo, powInt } from "./src/Utils.js";
+import { createWebCamFromVideo, measureTime, powInt } from "./src/Utils.js";
 import { Vec3 } from "./src/Vec.js";
 import ColorKmeans from "./src/shaders/ColorKmeans.js";
 import ColorGMM from "./src/shaders/ColorGMM.js";
@@ -27,7 +27,9 @@ function createAppState() {
 }
 
 function resetAppState(appState) {
-  // update app state
+  appState.algorithmSelect.instance = appState.algorithmSelect.build(
+    appState.numberOfClusters
+  );
 }
 
 function updateAppState(appState) {
@@ -134,10 +136,12 @@ function createInputSpace(appState) {
           return;
         }
         if (key === "algorithmSelect") {
-          appState.algorithmSelect = SHADERS[newState.algorithmSelect.name];
-          appState.algorithmSelect.instance = appState.algorithmSelect.build(
-            newState.numberOfClusters
-          );
+          if (newState.algorithmSelect !== oldState.algorithmSelect) {
+            appState.algorithmSelect = SHADERS[newState.algorithmSelect];
+            appState.algorithmSelect.instance = appState.algorithmSelect.build(
+              newState.numberOfClusters
+            );
+          }
           return;
         }
         if (key in appState) {
@@ -241,14 +245,24 @@ function clusterVideoImage(UI, appState) {
   const canvasOut = getCanvasOutput(UI);
   const inputImage = getInputImage(UI);
   canvasIn.paintMedia(inputImage);
-  canvasOut.paintMedia(inputImage)
-  // const imageData = canvasIn.getData();
-  // const clusterAlgorithm = getAlgorithm(appState);
-  // if (isLearning(appState)) {
-  //   clusterAlgorithm.updateWithImageData(imageData);
-  // }
-  // clusterAlgorithm.paintImage({ imageData, canvasOut, appState });
-  // updateOutput(appState, UI.output);
+  canvasOut.paintMedia(inputImage);
+  const imageData = canvasIn.getData();
+  const clusterAlgorithm = getAlgorithm(appState);
+  if (isLearning(appState)) {
+    measureTime(
+      () => {
+        clusterAlgorithm.updateWithImageData(imageData);
+      },
+      { label: ">>> LEARNING" }
+    );
+  }
+  measureTime(
+    () => {
+      clusterAlgorithm.paintImage({ imageData, canvasOut, appState });
+    },
+    { label: ">>> DRAW" }
+  );
+  updateOutput(appState, UI.output);
   requestAnimationFrame(() => clusterVideoImage(UI, appState));
 }
 

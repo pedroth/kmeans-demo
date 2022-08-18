@@ -2,7 +2,7 @@ class GUI {
   constructor(schema, onChangeLambda) {
     this.schema = schema;
     this.state = this.buildStateFromSchema(schema);
-    this.id2key = this.buildId2KeyMapFromState(this.state);
+    this.id2key = this.buildId2KeyMapFromSchema(schema);
     this.DOM = this.buildDOMFromSchema(schema);
     this.onChangeLambda = onChangeLambda;
   }
@@ -45,13 +45,16 @@ class GUI {
     }
   };
 
-  buildId2KeyMapFromState(state, parents = [], map = {}) {
-    Object.keys(state).forEach((key) => {
-      const value = state[key];
-      if (typeof value === "object") {
-        this.buildId2KeyMapFromState(value, parents.concat([key]), map);
+  buildId2KeyMapFromSchema(schema, parents = [], map = {}) {
+    schema.forEach((elem) => {
+      if (elem instanceof ObjectBuilder) {
+        this.buildId2KeyMapFromSchema(
+          elem._children,
+          parents.concat([elem._id]),
+          map
+        );
       } else {
-        map[key] = [...parents, key];
+        map[elem._id] = [...parents, elem._id];
       }
     });
     return map;

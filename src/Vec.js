@@ -180,3 +180,5 @@ function sameSizeOrError(a, b) {
 
 export const Vec3 = (x = 0, y = 0, z = 0) => Vec.of(x, y, z);
 export const Vec2 = (x = 0, y = 0) => Vec.of(x, y);
+
+

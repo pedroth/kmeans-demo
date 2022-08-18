@@ -66,3 +66,10 @@ export function matrixProd(matrix, vec3) {
   const [x, y, z] = vec3.toArray();
   return matrix[0].scale(x).add(matrix[1].scale(y)).add(matrix[2].scale(z));
 }
+
+export function measureTime(lambda, { label = "" }) {
+  const startTime = performance.now();
+  lambda();
+  const endTime = performance.now();
+  console.log(`Performance ${endTime - startTime}s ${label}`);
+}

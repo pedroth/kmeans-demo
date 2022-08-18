@@ -30,6 +30,11 @@ export default class Kmeans {
     return clusterIndex;
   }
 
+  /**
+   *
+   * @param {Vec} vector
+   * @returns {Number}
+   */
   _getClusterIndexFromPrediction(vector) {
     const prediction = vector._vec;
     for (let i = 0; i < prediction.length; i++) {
@@ -70,7 +75,7 @@ export default class Kmeans {
   /**
    *
    * @param {Vec} data
-   * @returns {Array<Number>}
+   * @returns {Vec}
    */
   predict(x) {
     let kIndex = -1;

@@ -1,5 +1,6 @@
 import Kmeans from "../algorithms/Kmeans.js";
 import Vec, { Vec3 } from "../Vec.js";
+import { getDataFromImagePixels } from "./ShaderUtils.js";
 
 export default class ColorKmeans {
   constructor(k) {
@@ -13,29 +14,6 @@ export default class ColorKmeans {
 
   //========================================================================================
   /*                                                                                      *
-   *                                        PRIVATE                                       *
-   *                                                                                      */
-  //========================================================================================
-  /**
-   *
-   * @param {Array<Number>} imageData
-   * @returns {Array<Vec3>}
-   */
-  getDataFromImagePixels(imageData) {
-    const data = [];
-    let j = 0;
-    for (let i = 0; i < imageData.length; i += 4) {
-      data[j++] = Vec3(
-        imageData[i] / 255,
-        imageData[i + 1] / 255,
-        imageData[i + 2] / 255
-      );
-    }
-    return data;
-  }
-
-  //========================================================================================
-  /*                                                                                      *
    *                                        PUBLIC                                        *
    *                                                                                      */
   //========================================================================================
@@ -45,7 +23,7 @@ export default class ColorKmeans {
    * @param {ArrayBuffer<Number>} imageData: Array<Number> width, height, color
    */
   updateWithImageData(imageData) {
-    const data = this.getDataFromImagePixels(imageData);
+    const data = getDataFromImagePixels(imageData);
     this.kmeans.update(data);
   }
 
@@ -60,11 +38,11 @@ export default class ColorKmeans {
       const classification = this.kmeans.predict(rgb);
       const index = Math.floor(classification.dot(this.indexVector));
       const colorCluster = this.kmeans.clusters[index].scale(255);
-      const newColor = colorCluster.map(Math.floor)._vec;
+      const outputColor = colorCluster.map(Math.floor)._vec;
       // console.log("DEBUG: classification", classification, newColor);
-      dataOut[i] = newColor[0];
-      dataOut[i + 1] = newColor[1];
-      dataOut[i + 2] = newColor[2];
+      dataOut[i] = outputColor[0];
+      dataOut[i + 1] = outputColor[1];
+      dataOut[i + 2] = outputColor[2];
       dataOut[i + 3] = 255;
     }
     canvasOut.paint();

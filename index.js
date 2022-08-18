@@ -252,6 +252,13 @@ let myNorm = function (v) {
  *                                                                                      */
 //========================================================================================
 
+function measureTime(lambda, { label = "" }) {
+  const startTime = performance.now();
+  lambda();
+  const endTime = performance.now();
+  console.log(`Performance ${endTime - startTime}s ${label}`);
+}
+
 function getImageIndex(x, size) {
   return 4 * (size[0] * x[0] + x[1]);
 }
@@ -396,8 +403,8 @@ function runKmeans(
 function gaussian(x, mu, sigma) {
   let dist = myNorm(diff(x, mu));
   return (
-    (1.0 / Math.sqrt(powInt(2 * Math.PI * sigma, 3))) *
-    Math.exp(-((dist * dist) / (2 * sigma * sigma)))
+    Math.exp(-(dist * dist) / (2 * sigma * sigma)) /
+    (Math.sqrt(2 * Math.PI) * sigma)
   );
 }
 
@@ -425,14 +432,16 @@ function updateClustersGMM(weights, sampleData) {
       mu = add(mu, scalarMult(w[j], rgb));
       acc += w[j];
     }
+    console.log("debug parameters acc", acc);
     clusters[i] = scalarMult(1 / acc, mu);
     let sigma = 0;
     for (let j = 0; j < n; j++) {
       let rgb = sampleData[j];
       sigma += w[j] * squaredNorm(diff(rgb, clusters[i]));
     }
-    sigmas[i] = Math.sqrt((2 / (3 * acc)) * sigma);
-    phi[i] = (1 / n) * acc;
+    console.log("debug parameters sigma", sigma);
+    sigmas[i] = Math.sqrt(sigma / acc);
+    phi[i] = acc / n;
   }
 }
 
@@ -502,7 +511,33 @@ function initClusters() {
   }
 }
 
+function createToolWithLink({ url, title, text }) {
+  const icon = document.createElement("i");
+  icon.setAttribute("class", "material-icons");
+  const link = document.createElement("a");
+  link.setAttribute("title", title);
+  link.setAttribute("href", url);
+  link.setAttribute("target", "_blank");
+  link.setAttribute("rel", "noopener");
+  link.innerText = text;
+  icon.appendChild(link);
+  return icon;
+}
+
+function createToolBar() {
+  const tools = document.createElement("div");
+  tools.setAttribute("class", "tools");
+  const codeIcon = createToolWithLink({
+    url: "https://github.com/pedroth/kmeans-demo",
+    title: "Github",
+    text: "code",
+  });
+  tools.appendChild(codeIcon);
+  document.body.appendChild(tools);
+}
+
 function init() {
+  createToolBar();
   initUI();
   window.addEventListener("resize", resize);
   resize();
