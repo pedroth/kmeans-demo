@@ -6,10 +6,9 @@
 
 import Canvas from "./src/Canvas.js";
 import GUI from "./src/GUI.js";
-import { createWebCamFromVideo, measureTime, powInt } from "./src/Utils.js";
-import { Vec3 } from "./src/Vec.js";
-import ColorKmeans from "./src/shaders/ColorKmeans.js";
 import ColorGMM from "./src/shaders/ColorGMM.js";
+import ColorKmeans from "./src/shaders/ColorKmeans.js";
+import { createWebCamFromVideo } from "./src/Utils.js";
 
 function createAppState() {
   const appState = {
@@ -249,19 +248,9 @@ function clusterVideoImage(UI, appState) {
   const imageData = canvasIn.getData();
   const clusterAlgorithm = getAlgorithm(appState);
   if (isLearning(appState)) {
-    measureTime(
-      () => {
-        clusterAlgorithm.updateWithImageData(imageData);
-      },
-      { label: ">>> LEARNING" }
-    );
+    clusterAlgorithm.updateWithImageData(imageData);
   }
-  measureTime(
-    () => {
-      clusterAlgorithm.paintImage({ imageData, canvasOut, appState });
-    },
-    { label: ">>> DRAW" }
-  );
+  clusterAlgorithm.paintImage({ imageData, canvasOut, appState });
   updateOutput(appState, UI.output);
   requestAnimationFrame(() => clusterVideoImage(UI, appState));
 }

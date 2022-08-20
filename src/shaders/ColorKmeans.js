@@ -6,10 +6,6 @@ export default class ColorKmeans {
   constructor(k) {
     this.k = k;
     this.kmeans = new Kmeans(k, 3);
-    this.indexVector = new Vec(
-      [...Array(this.k)].map((_, i) => i),
-      true
-    );
   }
 
   //========================================================================================
@@ -36,9 +32,9 @@ export default class ColorKmeans {
         imageData[i + 2] / 255
       );
       const classification = this.kmeans.predict(rgb);
-      const index = Math.floor(classification.dot(this.indexVector));
+      const index = classification.findIndex((x) => x > 0);
       const colorCluster = this.kmeans.clusters[index].scale(255);
-      const outputColor = colorCluster.map(Math.floor)._vec;
+      const outputColor = colorCluster.map(Math.floor).toArray();
       // console.log("DEBUG: classification", classification, newColor);
       dataOut[i] = outputColor[0];
       dataOut[i + 1] = outputColor[1];

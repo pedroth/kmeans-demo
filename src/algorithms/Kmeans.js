@@ -1,3 +1,4 @@
+import { measureTime } from "../Utils.js";
 import Vec from "../Vec.js";
 
 export default class Kmeans {
@@ -22,24 +23,15 @@ export default class Kmeans {
     for (let i = 0; i < this.k; i++) {
       clusterIndex[i] = [];
     }
-    for (let i = 0; i < data.length; i++) {
-      let kIndex = this._getClusterIndexFromPrediction(this.predict(data[i]));
-      let j = clusterIndex[kIndex].length;
-      clusterIndex[kIndex][j] = i;
-    }
+    measureTime(() => {
+      for (let i = 0; i < data.length; i++) {
+        const prediction = this.predict(data[i]);
+        const kIndex = prediction.findIndex((x) => x > 0);
+        const j = clusterIndex[kIndex].length;
+        clusterIndex[kIndex][j] = i;
+      }
+    }, "clustering");
     return clusterIndex;
-  }
-
-  /**
-   *
-   * @param {Vec} vector
-   * @returns {Number}
-   */
-  _getClusterIndexFromPrediction(vector) {
-    const prediction = vector._vec;
-    for (let i = 0; i < prediction.length; i++) {
-      if (prediction[i] === 1.0) return i;
-    }
   }
 
   _updateParameters(dataByClusters, data) {
@@ -81,7 +73,7 @@ export default class Kmeans {
     let kIndex = -1;
     let minDistance = Number.MAX_VALUE;
     for (let i = 0; i < this.k; i++) {
-      let dist = x.sub(this.clusters[i]).length();
+      let dist = x.sub(this.clusters[i]).squareLength();
       if (minDistance > dist) {
         minDistance = dist;
         kIndex = i;

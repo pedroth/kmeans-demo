@@ -1,5 +1,5 @@
 import GMM from "../algorithms/GMM.js";
-import Vec, { Vec3 } from "../Vec.js";
+import { Vec3 } from "../Vec.js";
 import { getDataFromImagePixels } from "./ShaderUtils.js";
 
 export default class ColorGMM {
@@ -38,7 +38,7 @@ export default class ColorGMM {
         const mu = this.gmm.clusters[i];
         expectedColor = expectedColor.add(mu.scale(w));
       }
-      const outputColor = expectedColor.scale(255).map(Math.floor)._vec;
+      const outputColor = expectedColor.scale(255).map(Math.floor).toArray();
       dataOut[i] = outputColor[0];
       dataOut[i + 1] = outputColor[1];
       dataOut[i + 2] = outputColor[2];

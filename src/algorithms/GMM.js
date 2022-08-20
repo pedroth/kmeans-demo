@@ -54,7 +54,7 @@ export default class GMM {
         const mu = this.clusters[i];
         sigma += w * mu.sub(rgb).squareLength();
       }
-      this.sigmas[i] = Math.sqrt((2 * sigma) / (3 * acc));
+      this.sigmas[i] = Math.sqrt(sigma / acc);
       this.phis[i] = acc / n;
     }
   }
@@ -62,8 +62,8 @@ export default class GMM {
   _gaussian(x, mu, sigma) {
     let dist = x.sub(mu).length();
     return (
-      Math.exp(-((dist * dist) / (2 * sigma))) /
-      Math.sqrt(powInt(2 * Math.PI * sigma, this.dim))
+      Math.exp(-((dist * dist) / (2 * sigma * sigma))) /
+      (Math.sqrt(2 * Math.PI) * sigma)
     );
   }
 

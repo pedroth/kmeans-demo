@@ -67,9 +67,19 @@ export function matrixProd(matrix, vec3) {
   return matrix[0].scale(x).add(matrix[1].scale(y)).add(matrix[2].scale(z));
 }
 
-export function measureTime(lambda, { label = "" }) {
+let SUM = {};
+let COUNT = {};
+export function measureTime(lambda, label = "") {
   const startTime = performance.now();
-  lambda();
+  const ans = lambda();
   const endTime = performance.now();
-  console.log(`Performance ${endTime - startTime}s ${label}`);
+  const diff = endTime - startTime;
+  if (!(label in SUM)) {
+    SUM[label] = 0;
+    COUNT[label] = 0;
+  }
+  SUM[label] += diff;
+  COUNT[label] += 1;
+  console.log(`Performance ${diff}s ${label}`);
+  return ans;
 }

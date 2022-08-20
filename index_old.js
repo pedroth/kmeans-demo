@@ -7,23 +7,6 @@
 import Canvas from "./src/Canvas.js";
 import { createWebCamFromVideo, powInt } from "./src/Utils.js";
 
-const uiState = {
-  imageFile: undefined,
-  numberOfClusters: 2,
-  isLearning: true,
-  samplePercentage: Number.parseFloat(
-    document.getElementById("alphaValue").innerText
-  ),
-  clustersState: [],
-  numberOfClusterStates: 4,
-};
-
-const appState = {
-  canvas: new Canvas(document.getElementById("canvas")),
-  canvasVideo: new Canvas(document.getElementById("canvasVideo")),
-  input: undefined,
-};
-
 let isVideo = true;
 const canvas = new Canvas(document.getElementById("canvas"));
 const canvasVideo = new Canvas(document.getElementById("canvasVideo"));
@@ -96,7 +79,7 @@ function createTrainingDataUI() {
   input.setAttribute("min", "1");
   input.setAttribute("max", "100");
   input.setAttribute("step", "1");
-  input.setAttribute("value", "50");
+  input.setAttribute("value", "100");
   input.onchange = (e) => {
     let alpha = parseInt(e.target.value);
     alpha = alpha / 100.0;
@@ -252,11 +235,21 @@ let myNorm = function (v) {
  *                                                                                      */
 //========================================================================================
 
-function measureTime(lambda, { label = "" }) {
+let SUM = {};
+let COUNT = {};
+export function measureTime(lambda, label = "") {
   const startTime = performance.now();
-  lambda();
+  const ans = lambda();
   const endTime = performance.now();
-  console.log(`Performance ${endTime - startTime}s ${label}`);
+  const diff = endTime - startTime;
+  if (!(label in SUM)) {
+    SUM[label] = 0;
+    COUNT[label] = 0;
+  }
+  SUM[label] += diff;
+  COUNT[label] += 1;
+  console.log(`Performance ${diff}s ${label}`);
+  return ans;
 }
 
 function getImageIndex(x, size) {
@@ -331,11 +324,13 @@ function classifyIntoClusters(sampleData, classifyFunction) {
   for (let i = 0; i < numberOfCluster; i++) {
     clusterIndex[i] = [];
   }
-  for (let i = 0; i < sampleData.length; i++) {
-    let kIndex = classifyFunction(sampleData[i]);
-    let j = clusterIndex[kIndex].length;
-    clusterIndex[kIndex][j] = i;
-  }
+  measureTime(() => {
+    for (let i = 0; i < sampleData.length; i++) {
+      let kIndex = classifyFunction(sampleData[i]);
+      let j = clusterIndex[kIndex].length;
+      clusterIndex[kIndex][j] = i;
+    }
+  }, "clustering");
   return clusterIndex;
 }
 
@@ -387,6 +382,7 @@ function runKmeans(
 ) {
   if (isLearning) {
     let sampleData = samplingData(data, numOfSamples);
+
     let dataIntoClusters = classifyIntoClusters(sampleData, classifyFunction);
     averageColor = computeAverageColor(sampleData);
     clusterUpdateFunction(dataIntoClusters, sampleData);
@@ -432,14 +428,12 @@ function updateClustersGMM(weights, sampleData) {
       mu = add(mu, scalarMult(w[j], rgb));
       acc += w[j];
     }
-    console.log("debug parameters acc", acc);
     clusters[i] = scalarMult(1 / acc, mu);
     let sigma = 0;
     for (let j = 0; j < n; j++) {
       let rgb = sampleData[j];
       sigma += w[j] * squaredNorm(diff(rgb, clusters[i]));
     }
-    console.log("debug parameters sigma", sigma);
     sigmas[i] = Math.sqrt(sigma / acc);
     phi[i] = acc / n;
   }

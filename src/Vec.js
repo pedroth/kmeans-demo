@@ -5,15 +5,9 @@
  * Didn't use private vars because of performance
  */
 export default class Vec {
-  constructor(array, isValid = false) {
-    if (isValid) {
-      this._vec = array;
-      this._n = this._vec.length;
-    } else {
-      this._vec = BUILD_VEC(array.length);
-      _sanitize_input(array, this._vec);
-      this._n = this._vec.length;
-    }
+  constructor(array) {
+    this._vec = array;
+    this._n = this._vec.length;
   }
 
   get n() {
@@ -24,7 +18,7 @@ export default class Vec {
   shape = () => [this._n];
 
   clone() {
-    return new Vec(COPY_VEC(this._vec), true);
+    return new Vec(COPY_VEC(this._vec));
   }
 
   /**index starts at zero */
@@ -90,7 +84,7 @@ export default class Vec {
     for (let i = 0; i < this._n; i++) {
       ans[i] = lambda(this._vec[i], i);
     }
-    return new Vec(ans, true);
+    return new Vec(ans);
   }
 
   /**
@@ -104,7 +98,7 @@ export default class Vec {
     for (let i = 0; i < this._n; i++) {
       ans[i] = operation(this._vec[i], y._vec[i]);
     }
-    return new Vec(ans, true);
+    return new Vec(ans);
   }
 
   reduce(fold, init = 0) {
@@ -127,21 +121,28 @@ export default class Vec {
     return new Vec(this._vec.slice(n, m));
   }
 
+  findIndex(predicate) {
+    for (let i = 0; i < this._n; i++) {
+      if (predicate(this._vec[i])) return i;
+    }
+    return -1;
+  }
+
   static fromArray(array) {
-    return new Vec(array);
+    return new Vec(_sanitize_input(array, BUILD_VEC(array.length)));
   }
 
   static of(...values) {
-    return new Vec(values);
+    return new Vec(_sanitize_input(values, BUILD_VEC(values.length)));
   }
 
-  static ZERO = (n) => new Vec(BUILD_VEC(n), true);
+  static ZERO = (n) => new Vec(BUILD_VEC(n));
   static e = (n) => (i) => {
     const vec = BUILD_VEC(n);
     if (i >= 0 && i < n) {
       vec[i] = 1;
     }
-    return new Vec(vec, true);
+    return new Vec(vec);
   };
 
   static RANDOM = (n) => {
@@ -149,7 +150,7 @@ export default class Vec {
     for (let i = 0; i < n; i++) {
       v[i] = Math.random();
     }
-    return new Vec(v, true);
+    return new Vec(v);
   };
 }
 
@@ -180,5 +181,3 @@ function sameSizeOrError(a, b) {
 
 export const Vec3 = (x = 0, y = 0, z = 0) => Vec.of(x, y, z);
 export const Vec2 = (x = 0, y = 0) => Vec.of(x, y);
-
-
