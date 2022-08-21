@@ -23,14 +23,12 @@ export default class Kmeans {
     for (let i = 0; i < this.k; i++) {
       clusterIndex[i] = [];
     }
-    measureTime(() => {
-      for (let i = 0; i < data.length; i++) {
-        const prediction = this.predict(data[i]);
-        const kIndex = prediction.findIndex((x) => x > 0);
-        const j = clusterIndex[kIndex].length;
-        clusterIndex[kIndex][j] = i;
-      }
-    }, "clustering");
+    for (let i = 0; i < data.length; i++) {
+      const prediction = this.predict(data[i]);
+      const kIndex = prediction.findIndex((x) => x > 0);
+      const j = clusterIndex[kIndex].length;
+      clusterIndex[kIndex][j] = i;
+    }
     return clusterIndex;
   }
 

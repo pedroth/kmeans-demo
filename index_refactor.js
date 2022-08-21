@@ -8,7 +8,7 @@ import Canvas from "./src/Canvas.js";
 import GUI from "./src/GUI.js";
 import ColorGMM from "./src/shaders/ColorGMM.js";
 import ColorKmeans from "./src/shaders/ColorKmeans.js";
-import { createWebCamFromVideo } from "./src/Utils.js";
+import { createWebCamFromVideo, measureTime } from "./src/Utils.js";
 
 function createAppState() {
   const appState = {
@@ -248,7 +248,12 @@ function clusterVideoImage(UI, appState) {
   const imageData = canvasIn.getData();
   const clusterAlgorithm = getAlgorithm(appState);
   if (isLearning(appState)) {
-    clusterAlgorithm.updateWithImageData(imageData);
+    measureTime(() => {
+      clusterAlgorithm.updateWithImageData(
+        imageData,
+        () => Math.random() < appState.samplePercentage
+      );
+    }, "training");
   }
   clusterAlgorithm.paintImage({ imageData, canvasOut, appState });
   updateOutput(appState, UI.output);

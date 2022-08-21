@@ -14,6 +14,10 @@ export default class Vec {
     return this._n;
   }
 
+  get dim() {
+    return this._n;
+  }
+
   size = () => this._n;
   shape = () => [this._n];
 

@@ -1,5 +1,5 @@
 import Kmeans from "../algorithms/Kmeans.js";
-import Vec, { Vec3 } from "../Vec.js";
+import { Vec3 } from "../Vec.js";
 import { getDataFromImagePixels } from "./ShaderUtils.js";
 
 export default class ColorKmeans {
@@ -18,8 +18,8 @@ export default class ColorKmeans {
    *
    * @param {ArrayBuffer<Number>} imageData: Array<Number> width, height, color
    */
-  updateWithImageData(imageData) {
-    const data = getDataFromImagePixels(imageData);
+  updateWithImageData(imageData, filter) {
+    const data = getDataFromImagePixels(imageData, filter);
     this.kmeans.update(data);
   }
 
@@ -35,7 +35,6 @@ export default class ColorKmeans {
       const index = classification.findIndex((x) => x > 0);
       const colorCluster = this.kmeans.clusters[index].scale(255);
       const outputColor = colorCluster.map(Math.floor).toArray();
-      // console.log("DEBUG: classification", classification, newColor);
       dataOut[i] = outputColor[0];
       dataOut[i + 1] = outputColor[1];
       dataOut[i + 2] = outputColor[2];

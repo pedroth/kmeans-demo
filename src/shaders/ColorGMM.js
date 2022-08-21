@@ -18,8 +18,8 @@ export default class ColorGMM {
    *
    * @param {ArrayBuffer<Number>} imageData: Array<Number> width, height, color
    */
-  updateWithImageData(imageData) {
-    const data = getDataFromImagePixels(imageData);
+  updateWithImageData(imageData, filter) {
+    const data = getDataFromImagePixels(imageData, filter);
     this.gmm.update(data);
   }
 

@@ -324,13 +324,11 @@ function classifyIntoClusters(sampleData, classifyFunction) {
   for (let i = 0; i < numberOfCluster; i++) {
     clusterIndex[i] = [];
   }
-  measureTime(() => {
-    for (let i = 0; i < sampleData.length; i++) {
-      let kIndex = classifyFunction(sampleData[i]);
-      let j = clusterIndex[kIndex].length;
-      clusterIndex[kIndex][j] = i;
-    }
-  }, "clustering");
+  for (let i = 0; i < sampleData.length; i++) {
+    let kIndex = classifyFunction(sampleData[i]);
+    let j = clusterIndex[kIndex].length;
+    clusterIndex[kIndex][j] = i;
+  }
   return clusterIndex;
 }
 
@@ -380,14 +378,17 @@ function runKmeans(
   drawFunction,
   stateMachine
 ) {
-  if (isLearning) {
-    let sampleData = samplingData(data, numOfSamples);
-
-    let dataIntoClusters = classifyIntoClusters(sampleData, classifyFunction);
-    averageColor = computeAverageColor(sampleData);
-    clusterUpdateFunction(dataIntoClusters, sampleData);
-  }
-  drawFunction(data, classifyFunction, stateMachine);
+  measureTime(() => {
+    if (isLearning) {
+      let sampleData = samplingData(data, numOfSamples);
+      let dataIntoClusters = classifyIntoClusters(sampleData, classifyFunction);
+      averageColor = computeAverageColor(sampleData);
+      clusterUpdateFunction(dataIntoClusters, sampleData);
+    }
+  }, "learning");
+  measureTime(() => {
+    drawFunction(data, classifyFunction, stateMachine);
+  }, "drawing");
 }
 
 //========================================================================================
