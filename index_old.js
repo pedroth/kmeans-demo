@@ -385,10 +385,8 @@ function runKmeans(
       averageColor = computeAverageColor(sampleData);
       clusterUpdateFunction(dataIntoClusters, sampleData);
     }
-  }, "learning");
-  measureTime(() => {
-    drawFunction(data, classifyFunction, stateMachine);
-  }, "drawing");
+  }, "training");
+  drawFunction(data, classifyFunction, stateMachine);
 }
 
 //========================================================================================
