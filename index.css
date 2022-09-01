@@ -1,0 +1,103 @@
+html {
+  height: 100vh;
+  width: 100vw;
+}
+
+body {
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  margin-left: 5%;
+  margin-right: 5%;
+  overflow-x: hidden;
+  background-color: rgb(47, 47, 47);
+  color: antiquewhite;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+button {
+  display: inline-flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  background-color: transparent;
+  outline: 0px;
+  margin: 0px;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: middle;
+  appearance: none;
+  text-decoration: none;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.75;
+  letter-spacing: 0.02857em;
+  /* text-transform: uppercase; */
+  min-width: 64px;
+  padding: 5px 15px;
+  border-radius: 4px;
+  transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  border: 1px solid rgba(144, 202, 249, 0.5);
+  color: rgb(144, 202, 249);
+}
+
+.canvas {
+  border-style: dashed;
+}
+
+.tools {
+  position: fixed;
+  left: 0;
+  top: 0;
+  background-color: rgba(27, 27, 27, 0.233);
+  border-radius: 6px;
+  z-index: 9999;
+  color: blanchedalmond;
+  font-size: 2.5rem;
+  align-items: center;
+  display: flex;
+}
+
+.tools a {
+  text-decoration: none;
+  color: blanchedalmond;
+  font-size: 2.5rem;
+}
+
+.canvasSpace {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+#app {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.canvas {
+  flex-grow: 1;
+}
+
+.outer {
+  display: flex;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.inner {
+  margin-right: 5px;
+}
+
+.form-visible {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}

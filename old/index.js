@@ -4,8 +4,8 @@
  *                                                                                      */
 //========================================================================================
 
-import Canvas from "./src/Canvas.js";
-import { createWebCamFromVideo, powInt } from "./src/Utils.js";
+import Canvas from "../src/Canvas.js";
+import { createWebCamFromVideo } from "../src/Utils.js";
 
 let isVideo = true;
 const canvas = new Canvas(document.getElementById("canvas"));

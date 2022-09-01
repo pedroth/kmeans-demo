@@ -76,7 +76,7 @@ class GUI {
    * @param {Array<Input>} schema
    * @returns {HTMLElement}
    */
-  buildDOMFromSchema = (schema, onChange) => {
+  buildDOMFromSchema = (schema) => {
     const guiDOM = document.createElement("div");
     const formDOM = createForm(
       schema,
@@ -125,7 +125,7 @@ const createToggleFormButton = (formDOM) => {
   style.textContent = `
     .form-visible {
       height: auto;
-      visibility: true
+      visibility: visible
     }
 
     .form-invisible {
@@ -202,8 +202,14 @@ class FileBuilder {
 
   buildDOM(setValueWithKey) {
     const fileDOM = document.createElement("div");
+    fileDOM.setAttribute("class", "outer");
+
     const labelDOM = document.createElement("span");
+    labelDOM.setAttribute("class", "inner");
+
     const fileInnerDOM = document.createElement("input");
+    fileInnerDOM.setAttribute("class", "inner");
+
     fileInnerDOM.setAttribute("type", "file");
     fileInnerDOM.setAttribute("accept", this._extensions.join(", "));
     fileInnerDOM.onchange = (e) => {
@@ -241,8 +247,14 @@ class SelectBuilder {
 
   buildDOM(setValueWithKey) {
     const selectDOM = document.createElement("div");
+    selectDOM.setAttribute("class", "outer");
+
     const selectLabel = document.createElement("span");
+    selectLabel.setAttribute("class", "inner");
+
     const selectInnerDOM = document.createElement("select");
+    selectInnerDOM.setAttribute("class", "inner");
+
     this._options.forEach(({ label, value }) => {
       const option = document.createElement("option");
       option.setAttribute("value", value);
@@ -290,8 +302,14 @@ class NumberBuilder {
 
   buildDOM(setValueWithKey) {
     const numberDOM = document.createElement("div");
+    numberDOM.setAttribute("class", "outer");
+
     const numberInput = document.createElement("input");
+    numberInput.setAttribute("class", "inner");
+
     const numberLabel = document.createElement("span");
+    numberLabel.setAttribute("class", "inner");
+
     numberInput.setAttribute("type", "number");
     numberInput.value = this._value;
     !!this._min && numberInput.setAttribute("min", this._min);
@@ -339,9 +357,17 @@ class RangeBuilder {
 
   buildDOM(setValueWithKey) {
     const numberDOM = document.createElement("div");
+    numberDOM.setAttribute("class", "outer");
+
     const rangeInput = document.createElement("input");
+    rangeInput.setAttribute("class", "inner");
+
     const numberInput = document.createElement("input");
+    numberInput.setAttribute("class", "inner");
+
     const numberLabel = document.createElement("span");
+    numberLabel.setAttribute("class", "inner");
+
     numberInput.setAttribute("type", "number");
     rangeInput.setAttribute("type", "range");
     !!this._min && numberInput.setAttribute("min", this._min);
@@ -389,8 +415,14 @@ class BooleanBuilder {
 
   buildDOM(setValueWithKey) {
     const boolDOM = document.createElement("div");
+    boolDOM.setAttribute("class", "outer");
+
     const boolInput = document.createElement("input");
+    boolInput.setAttribute("class", "inner");
+
     const boolLabel = document.createElement("span");
+    boolLabel.setAttribute("class", "inner");
+
     boolInput.setAttribute("type", "checkbox");
     if (this._value) boolInput.setAttribute("checked", true);
     boolInput.addEventListener("change", (e) => {
