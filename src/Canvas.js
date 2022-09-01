@@ -67,7 +67,7 @@ export default class Canvas {
    * @returns {Number}
    */
   getImageIndex(x, y) {
-    const { width } = canvas;
+    const { width } = this.canvas;
     return 4 * (width * x + y);
   }
 

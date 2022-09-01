@@ -378,15 +378,15 @@ function runKmeans(
   drawFunction,
   stateMachine
 ) {
+  if (isLearning) {
+    let sampleData = samplingData(data, numOfSamples);
+    let dataIntoClusters = classifyIntoClusters(sampleData, classifyFunction);
+    averageColor = computeAverageColor(sampleData);
+    clusterUpdateFunction(dataIntoClusters, sampleData);
+  }
   measureTime(() => {
-    if (isLearning) {
-      let sampleData = samplingData(data, numOfSamples);
-      let dataIntoClusters = classifyIntoClusters(sampleData, classifyFunction);
-      averageColor = computeAverageColor(sampleData);
-      clusterUpdateFunction(dataIntoClusters, sampleData);
-    }
-  }, "training");
-  drawFunction(data, classifyFunction, stateMachine);
+    drawFunction(data, classifyFunction, stateMachine);
+  }, "drawing");
 }
 
 //========================================================================================

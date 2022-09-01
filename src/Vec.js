@@ -230,11 +230,7 @@ class Vector3 {
   }
 
   toArray() {
-    const vec = BUILD_VEC(3);
-    vec[0] = this.x;
-    vec[1] = this.y;
-    vec[2] = this.z;
-    return vec;
+    return [this.x, this.y, this.z];
   }
 
   toString() {

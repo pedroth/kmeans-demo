@@ -15,9 +15,8 @@ function createAppState() {
     imageFile: undefined,
     algorithmSelect: SHADERS.kmeans,
     numberOfClusters: 2,
-    samplePercentage: 0.7,
+    samplePercentage: 1.0,
     isLearning: true,
-    clustersState: [],
   };
   appState.algorithmSelect.instance = appState.algorithmSelect.build(
     appState.numberOfClusters
@@ -30,17 +29,6 @@ function resetAppState(appState) {
     appState.numberOfClusters
   );
 }
-
-function updateAppState(appState) {
-  // update app state
-}
-
-const CLUSTERS_STATE = {
-  black: 0,
-  clusterColor: 1,
-  originalColor: 2,
-  white: 3,
-};
 
 const SHADERS = {
   kmeans: { name: "kmeans", build: (k) => new ColorKmeans(k) },
@@ -161,25 +149,28 @@ function createOutputSpace() {
   return document.createElement("div");
 }
 
+function onResize(UI) {
+  const canvasSpace = UI.canvasSpace.dom;
+  if (window.innerWidth >= window.innerHeight) {
+    canvasSpace.style.flexDirection = "row";
+  } else {
+    canvasSpace.style.flexDirection = "column";
+  }
+}
+
 function createUI(appState, domSpace) {
   const UI = {};
   UI.video = createVideoUI();
   UI.canvasSpace = createCanvasSpace();
   UI.input = createInputSpace(appState);
-  UI.output = createOutputSpace(UI, appState);
+  UI.output = createOutputSpace();
   domSpace.appendChild(createAppTitle());
   domSpace.appendChild(UI.video);
   domSpace.appendChild(UI.canvasSpace.dom);
   domSpace.appendChild(UI.input);
   domSpace.appendChild(UI.output);
-  window.addEventListener("resize", () => {
-    const canvasSpace = UI.canvasSpace.dom;
-    if (window.innerWidth >= window.innerHeight) {
-      canvasSpace.style.flexDirection = "row";
-    } else {
-      canvasSpace.style.flexDirection = "column";
-    }
-  });
+  window.addEventListener("resize", () => onResize(UI));
+  onResize(UI);
   return UI;
 }
 
@@ -237,8 +228,6 @@ function getInputImage(UI) {
   return UI.video;
 }
 
-function updateOutput(appState, outputDiv) {}
-
 function clusterVideoImage(UI, appState) {
   const canvasIn = getCanvasInput(UI);
   const canvasOut = getCanvasOutput(UI);
@@ -248,15 +237,13 @@ function clusterVideoImage(UI, appState) {
   const imageData = canvasIn.getData();
   const clusterAlgorithm = getAlgorithm(appState);
   if (isLearning(appState)) {
-    measureTime(() => {
-      clusterAlgorithm.updateWithImageData(
-        imageData,
-        () => Math.random() < appState.samplePercentage
-      );
-    }, "training");
+    clusterAlgorithm.updateWithImageData(
+      imageData,
+      () => Math.random() < appState.samplePercentage
+    );
   }
   clusterAlgorithm.paintImage({ imageData, canvasOut, appState });
-  updateOutput(appState, UI.output);
+  clusterAlgorithm.updateOutput(UI.output);
   requestAnimationFrame(() => clusterVideoImage(UI, appState));
 }
 

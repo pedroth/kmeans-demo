@@ -46,4 +46,6 @@ export default class ColorGMM {
     }
     canvasOut.paint();
   }
+
+  updateOutput() {}
 }
