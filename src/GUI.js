@@ -306,11 +306,11 @@ class NumberBuilder {
 
     const numberInput = document.createElement("input");
     numberInput.setAttribute("class", "inner");
+    numberInput.setAttribute("type", "number");
 
     const numberLabel = document.createElement("span");
     numberLabel.setAttribute("class", "inner");
 
-    numberInput.setAttribute("type", "number");
     numberInput.value = this._value;
     !!this._min && numberInput.setAttribute("min", this._min);
     !!this._max && numberInput.setAttribute("max", this._max);
@@ -361,15 +361,15 @@ class RangeBuilder {
 
     const rangeInput = document.createElement("input");
     rangeInput.setAttribute("class", "inner");
+    rangeInput.setAttribute("type", "range");
 
     const numberInput = document.createElement("input");
     numberInput.setAttribute("class", "inner");
+    numberInput.setAttribute("type", "number");
 
     const numberLabel = document.createElement("span");
     numberLabel.setAttribute("class", "inner");
 
-    numberInput.setAttribute("type", "number");
-    rangeInput.setAttribute("type", "range");
     !!this._min && numberInput.setAttribute("min", this._min);
     !!this._min && rangeInput.setAttribute("min", this._min);
     !!this._max && numberInput.setAttribute("max", this._max);
@@ -419,18 +419,18 @@ class BooleanBuilder {
 
     const boolInput = document.createElement("input");
     boolInput.setAttribute("class", "inner");
+    boolInput.setAttribute("type", "checkbox");
 
     const boolLabel = document.createElement("span");
     boolLabel.setAttribute("class", "inner");
 
-    boolInput.setAttribute("type", "checkbox");
     if (this._value) boolInput.setAttribute("checked", true);
     boolInput.addEventListener("change", (e) => {
       setValueWithKey(this._id, e.target.checked);
     });
     boolLabel.innerText = this._label;
-    boolDOM.appendChild(boolLabel);
     boolDOM.appendChild(boolInput);
+    boolDOM.appendChild(boolLabel);
     return boolDOM;
   }
 }

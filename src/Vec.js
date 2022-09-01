@@ -198,7 +198,7 @@ export const COPY_VEC = (array) => ARRAY_TYPES.Float64Array.from(array);
 export class VectorException extends Error {}
 
 export const Vec3 = (x = 0, y = 0, z = 0) => new Vector3(x, y, z);
-export const Vec2 = (x = 0, y = 0) => Vec.of(x, y);
+export const Vec2 = (x = 0, y = 0) => new Vector2(x, y);
 
 class Vector3 {
   constructor(x = 0, y = 0, z = 0) {
@@ -322,7 +322,7 @@ class Vector3 {
   }
 
   static of(...values) {
-    return new Vec(...values);
+    return new Vector3(...values);
   }
 
   static e = (i) => {
@@ -334,5 +334,133 @@ class Vector3 {
 
   static RANDOM = () => {
     return new Vector3(Math.random(), Math.random(), Math.random());
+  };
+}
+
+class Vector2 {
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
+  }
+
+  get n() {
+    return 2;
+  }
+
+  get dim() {
+    return 2;
+  }
+
+  size = () => 2;
+  shape = () => [2];
+
+  clone() {
+    return new Vector2(this.x, this.y);
+  }
+
+  /**index starts at zero */
+  get(i) {
+    if (i === 0) return this.x;
+    if (i === 1) return this.y;
+  }
+
+  toArray() {
+    return [this.x, this.y];
+  }
+
+  toString() {
+    return "[" + this.toArray().join(", ") + "]";
+  }
+
+  serialize() {
+    return this.toArray().join(", ");
+  }
+
+  add(u) {
+    return this.op(u, (a, b) => a + b);
+  }
+
+  sub(u) {
+    return this.op(u, (a, b) => a - b);
+  }
+
+  mul(u) {
+    return this.op(u, (a, b) => a * b);
+  }
+
+  div(u) {
+    return this.op(u, (a, b) => a / b);
+  }
+
+  dot(u) {
+    return this.x * u.x + this.y * u.y;
+  }
+
+  squareLength() {
+    return this.dot(this);
+  }
+
+  length() {
+    return Math.sqrt(this.dot(this));
+  }
+
+  normalize() {
+    return this.scale(1 / this.length());
+  }
+
+  scale(r) {
+    return this.map((z) => z * r);
+  }
+
+  map(lambda) {
+    return new Vector2(lambda(this.x), lambda(this.y));
+  }
+
+  /**
+   *
+   * @param {*} y: Vec
+   * @param {*} operation: (a,b) => op(a,b)
+   */
+  op(u, operation) {
+    return new Vector2(operation(this.x, u.x), operation(this.y, u.y));
+  }
+
+  reduce(fold, init = 0) {
+    let acc = init;
+    acc = fold(acc, this.x);
+    acc = fold(acc, this.y);
+    return acc;
+  }
+
+  fold = this.reduce;
+  foldLeft = this.fold;
+
+  equals(u, precision = 1e-5) {
+    if (!(u instanceof Vector2)) return false;
+    return this.sub(u).length() < precision;
+  }
+
+  findIndex(predicate) {
+    if (predicate(this.x)) return 0;
+    if (predicate(this.y)) return 1;
+    return -1;
+  }
+
+  static fromArray(array) {
+    return new Vector2(...array);
+  }
+
+  static of(...values) {
+    return new Vector2(...values);
+  }
+
+  static e = (i) => {
+    if (i === 0) return new Vector2(1, 0);
+    if (i === 1) return new Vector2(0, 1);
+    return new Vector2();
+  };
+
+  static RANDOM = () => {
+    return new Vector2(Math.random(), Math.random());
   };
 }

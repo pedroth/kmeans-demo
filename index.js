@@ -8,6 +8,7 @@ import Canvas from "./src/Canvas.js";
 import GUI from "./src/GUI.js";
 import ColorGMM from "./src/shaders/ColorGMM.js";
 import ColorKmeans from "./src/shaders/ColorKmeans.js";
+import PointCloud from "./src/shaders/PointCloud.js";
 import { createWebCamFromVideo, measureTime } from "./src/Utils.js";
 
 function createAppState() {
@@ -33,6 +34,7 @@ function resetAppState(appState) {
 const SHADERS = {
   kmeans: { name: "kmeans", build: (k) => new ColorKmeans(k) },
   gmm: { name: "gmm", build: (k) => new ColorGMM(k) },
+  "point cloud": { name: "point cloud", build: (_) => new PointCloud() },
 };
 
 //========================================================================================

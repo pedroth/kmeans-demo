@@ -128,4 +128,4 @@ class PointBuilder {
   }
 }
 
-Scene.Path = Path;
+Scene.Point = Point;

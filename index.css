@@ -15,6 +15,24 @@ body {
   height: 100vh;
 }
 
+input[type="checkbox"] {
+  cursor: inherit;
+  width: 1em;
+  height: 1em;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input {
+  font-family: inherit;
+  font-size: inherit;
+}
+
 button {
   display: inline-flex;
   -webkit-box-align: center;
@@ -91,6 +109,7 @@ button {
   display: flex;
   margin-top: 5px;
   margin-bottom: 5px;
+  align-items: center;
 }
 
 .inner {
