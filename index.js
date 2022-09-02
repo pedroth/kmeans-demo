@@ -86,7 +86,13 @@ function createInputSpace(appState) {
         .label("Image File")
         .extensions("jpeg", "jpg", "png")
         .onload((e) => {
-          console.log("image file event", e);
+          return new Promise((resolve) => {
+            const auxImage = new Image();
+            auxImage.onload = () => {
+              resolve(auxImage);
+            };
+            auxImage.src = e.target.result;
+          });
         }),
       GUI.selector("algorithmSelect")
         .value(appState.algorithmSelect)
@@ -226,14 +232,17 @@ function getAlgorithm(appState) {
   return algorithmSelect.instance;
 }
 
-function getInputImage(UI) {
+function getInputImage(UI, { imageFile }) {
+  if (!!imageFile) {
+    return imageFile;
+  }
   return UI.video;
 }
 
 function clusterVideoImage(UI, appState) {
   const canvasIn = getCanvasInput(UI);
   const canvasOut = getCanvasOutput(UI);
-  const inputImage = getInputImage(UI);
+  const inputImage = getInputImage(UI, appState);
   canvasIn.paintMedia(inputImage);
   canvasOut.paintMedia(inputImage);
   const imageData = canvasIn.getData();

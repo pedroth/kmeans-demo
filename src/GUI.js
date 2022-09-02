@@ -214,7 +214,10 @@ class FileBuilder {
     fileInnerDOM.setAttribute("accept", this._extensions.join(", "));
     fileInnerDOM.onchange = (e) => {
       const reader = new FileReader();
-      reader.onload = this._onload;
+      reader.onload = async (e) => {
+        const value = await this._onload(e);
+        setValueWithKey(this._id, value);
+      };
       reader.readAsDataURL(e.target.files[0]);
     };
     labelDOM.innerText = this._label;
