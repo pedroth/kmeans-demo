@@ -8,6 +8,7 @@ export default class PointCloud {
     this.camera = new Camera();
     this.scene = new Scene();
     this.haveGeneratedOutput = false;
+    this.haveSetUpCanvas = false;
   }
 
   _updateSceneWithData(data) {}
