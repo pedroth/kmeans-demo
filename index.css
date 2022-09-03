@@ -1,6 +1,4 @@
 html {
-  height: 100vh;
-  width: 100vw;
 }
 
 body {
@@ -12,7 +10,8 @@ body {
   color: antiquewhite;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  max-height: fit-content;
+  min-height: fit-content;
 }
 
 input[type="checkbox"] {
@@ -99,6 +98,7 @@ button {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .canvas {

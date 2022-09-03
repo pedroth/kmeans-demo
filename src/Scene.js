@@ -4,7 +4,7 @@ export default class Scene {
   }
 
   addElement(elem) {
-    const classes = [Line, Path];
+    const classes = [Line, Point];
     if (!classes.some((c) => elem instanceof c)) return this;
     const { name } = elem;
     this.scene[name] = elem;
@@ -63,8 +63,8 @@ class LineBuilder {
     return this;
   }
 
-  color(color) {
-    this._color = color;
+  color(r = 0, g = 0, b = 0, alpha = 255) {
+    this._color = [r, g, b, alpha];
     return this;
   }
 
@@ -86,10 +86,11 @@ class Point {
    * @param {Number} radius
    * @param {Array4} color
    */
-  constructor(name, radius, color) {
+  constructor(name, radius, color, position) {
     this.name = name;
     this.radius = radius;
     this.color = color;
+    this.position = position;
   }
 
   static builder() {
@@ -114,13 +115,18 @@ class PointBuilder {
     return this;
   }
 
-  color(color) {
-    this._color = color;
+  color(r = 0, g = 0, b = 0, alpha = 255) {
+    this._color = [r, g, b, alpha];
+    return this;
+  }
+
+  position(posVec3) {
+    this._position = posVec3;
     return this;
   }
 
   build() {
-    const attrs = [this._name, this._radius, this._color];
+    const attrs = [this._name, this._radius, this._color, this._position];
     if (attrs.some((x) => x === undefined)) {
       throw new Error("Point is incomplete");
     }

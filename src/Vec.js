@@ -310,6 +310,10 @@ class Vector3 {
     return this.sub(u).length() < precision;
   }
 
+  take(n = 0, m = this._vec.length) {
+    return Vec.of(this.x, this.y, this.z).take(n, m);
+  }
+
   findIndex(predicate) {
     if (predicate(this.x)) return 0;
     if (predicate(this.y)) return 1;
@@ -438,6 +442,10 @@ class Vector2 {
   equals(u, precision = 1e-5) {
     if (!(u instanceof Vector2)) return false;
     return this.sub(u).length() < precision;
+  }
+
+  take(n = 0, m = this._vec.length) {
+    return Vec.of(this.x, this.y).take(n, m);
   }
 
   findIndex(predicate) {

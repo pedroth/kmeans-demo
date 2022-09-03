@@ -78,7 +78,7 @@ export default class Canvas {
    * @returns {Vec2}
    */
   canvasTransformInt(x, y) {
-    const { width, height } = canvas;
+    const { width, height } = this.canvas;
     const [xmin, ymin] = this.min.toArray();
     const [xmax, ymax] = this.max.toArray();
     let xint = (-height / (ymax - ymin)) * (y - ymax);
@@ -93,7 +93,7 @@ export default class Canvas {
    * @returns {Vec2}
    */
   canvasTransform(x, y) {
-    const { width, height } = canvas;
+    const { width, height } = this.canvas;
     const [xmin, ymin] = this.min.toArray();
     const [xmax, ymax] = this.max.toArray();
     let xt = xmin + ((xmax - xmin) / width) * y;
@@ -224,6 +224,25 @@ export default class Canvas {
     let x1Int = this.canvasTransformInt(...x1.toArray());
     let x2Int = this.canvasTransformInt(...x2.toArray());
     this.drawLineInt(x1Int, x2Int, rgb);
+    return this;
+  }
+
+  drawPoint(x, rgb, radius = 1) {
+    radius = Math.max(0, radius);
+    const xint = this.canvasTransformInt(...x.toArray());
+    const [i, j] = xint.map(Math.floor).toArray();
+    if (radius === 1) {
+      this.drawPxl(i, j, rgb);
+      return this;
+    }
+
+    const n = radius - 1;
+    for (let k = -n; k < radius; k++) {
+      for (let l = -n; l < radius; l++) {
+        this.drawPxl(i + k, j + l, rgb);
+      }
+    }
+    return this;
   }
 
   /**
