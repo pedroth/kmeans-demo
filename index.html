@@ -1,83 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clustering colors in video</title>
-    <!-- main style -->
-    <link rel="stylesheet" href="./index.css" />
-  </head>
-  <body>
-    <div id="app">
-        <span><h1>Clustering video colors</h1></span>
-      <video id="video" width="0" height="0" autoplay="true"></video>
-      <div id="canvasSpace">
-        <canvas
-          id="canvasVideo"
-          width="320"
-          height="240"
-          style="border-style: dashed"
-        ></canvas>
-        <canvas
-          id="canvas"
-          width="320"
-          height="240"
-          style="border-style: dashed"
-        ></canvas>
-      </div>
-      <div id="input">
-        <div id="imageLoader">
-          <span>Input image:</span>
-          <input type="file" id="imageLoader" />
-        </div>
-        <div id="methodSelector">
-          <span>Clustering method:</span>
-          <select id="selectAlgorithm">
-            <option>Kmeans</option>
-            <option>GMM</option>
-          </select>
-        </div>
-        <div id="inputNClusters">
-          <span>NumberOfClusters:</span>
-          <input
-            type="number"
-            id="numOfClusters"
-            min="2"
-            onchange="updateNumberOfClusters()"
-            value="2"
-          />
-        </div>
-        <div id="trainingPercentage">
-          <span>TrainingDataP:</span>
-          <q id="alphaValue">0.5</q>
-          <input
-            type="range"
-            min="1"
-            max="100"
-            step="1"
-            id="alpha"
-            value="50"
-            onchange="initNumOfSamples()"
-          />
-        </div>
-        <div id="startReset">
-          <input
-            type="button"
-            id="stopLearningButton"
-            onclick="stopLearning()"
-            value="Stop Learning"
-          />
-          <input type="button" onclick="initClusters()" value="reset" />
-        </div>
-      </div>
-      <div id="output">
-        <table
-          id="clusterTable"
-          style="width: 100%; white-space: nowrap; font-size: 14px"
-        ></table>
-      </div>
-    </div>
-  </body>
-  <script src="index.js"></script>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clustering colors in video</title>
+  <!-- main style -->
+  <link rel="stylesheet" href="./index.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" crossorigin="anonymous" />
+</head>
+
+<body>
+  <div id="app"></div>
+</body>
+<script type="module" src="index.js"></script>
+
 </html>
