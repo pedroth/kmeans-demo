@@ -4,15 +4,32 @@ import {
   getDataFromImagePixels,
   hexToRgb,
   STATES,
-  updateShaderOutput
+  updateShaderOutput,
 } from "./ShaderUtils.js";
+
+const state2lazyColor = {
+  [STATES.CLUSTER]: ({ clusterColor }) => clusterColor(),
+  [STATES.ORIGINAL]: ({ originalColor }) => originalColor(),
+  [STATES.CUSTOM]: ({ customColor }) => customColor(),
+};
 
 export default class ColorKmeans {
   constructor(k) {
     this.k = k;
     this.kmeans = new Kmeans(k, 3);
-    this.haveGeneratedOutput = false;
     this.states = [...Array(k)].map((_) => ({ type: STATES.CLUSTER }));
+  }
+
+  _getColorFromDataPoint(r, g, b) {
+    const testPoint = Vec3(r / 255, g / 255, b / 255);
+    const classification = this.kmeans.predict(testPoint);
+    const index = classification.findIndex((x) => x > 0);
+    const color = state2lazyColor[this.states[index].type]({
+      clusterColor: () => this.kmeans.clusters[index].scale(255),
+      originalColor: () => testPoint.scale(255),
+      customColor: () => hexToRgb(this.states[index]?.color),
+    });
+    return color;
   }
 
   //========================================================================================
@@ -39,25 +56,13 @@ export default class ColorKmeans {
   }
 
   paintImage({ imageData, canvasOut }) {
-    const state2lazyColor = {
-      [STATES.CLUSTER]: ({ clusterColor }) => clusterColor(),
-      [STATES.ORIGINAL]: ({ originalColor }) => originalColor(),
-      [STATES.CUSTOM]: ({ customColor }) => customColor(),
-    };
     const dataOut = canvasOut.getData();
     for (let i = 0; i < dataOut.length; i += 4) {
-      const rgb = Vec3(
-        imageData[i] / 255,
-        imageData[i + 1] / 255,
-        imageData[i + 2] / 255
+      const color = this._getColorFromDataPoint(
+        imageData[i],
+        imageData[i + 1],
+        imageData[i + 2]
       );
-      const classification = this.kmeans.predict(rgb);
-      const index = classification.findIndex((x) => x > 0);
-      const color = state2lazyColor[this.states[index].type]({
-        clusterColor: () => this.kmeans.clusters[index].scale(255),
-        originalColor: () => rgb.scale(255),
-        customColor: () => hexToRgb(this.states[index]?.color),
-      });
       dataOut[i] = color.get(0);
       dataOut[i + 1] = color.get(1);
       dataOut[i + 2] = color.get(2);

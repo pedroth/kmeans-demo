@@ -227,13 +227,30 @@ export default class Canvas {
     return this;
   }
 
-  drawPoint(x, rgb, { radius = 1, predicate = (i, j) => true }) {
+  /**
+   *
+   * @param {Vec2} x1
+   * @param {Vec2} x2
+   * @param {Array4} rgb
+   * @param {
+   *  {
+   *    radius: Number,
+   *    predicate: (i:Number,j:Number) => Boolean,
+   *    shader: ({x,y,dx,dy,rgb}) => rgb: Array4
+   *  }
+   * } options
+   */
+  drawPoint(
+    x,
+    rgb,
+    { radius = 1, predicate = (i, j) => true, shader = ({ rgb }) => rgb }
+  ) {
     radius = Math.max(0, radius);
     const xint = this.canvasTransformInt(...x.toArray());
     const [i, j] = xint.map(Math.floor).toArray();
     if (i < 0 || i >= this.height || j < 0 || j >= this.width) return;
-    if (!predicate(i, j)) return;
     if (radius === 1) {
+      if (!predicate(i, j)) return;
       this.drawPxl(i, j, rgb);
       return this;
     }
@@ -241,7 +258,10 @@ export default class Canvas {
     const n = radius - 1;
     for (let k = -n; k < radius; k++) {
       for (let l = -n; l < radius; l++) {
-        this.drawPxl(i + k, j + l, rgb);
+        const [u, v] = [i + k, j + l];
+        if (!predicate(u, v)) break;
+        const shaderRGB = shader({ x: i, y: j, rgb, dx: u - i, dy: v - j });
+        this.drawPxl(u, v, shaderRGB);
       }
     }
     return this;
@@ -287,6 +307,8 @@ export default class Canvas {
     const lambda =
       (isMouse = true) =>
       (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const mouse = this._getMouseFromEvent(e, isMouse);
         mouseDownLambda(mouse);
       };
@@ -298,6 +320,8 @@ export default class Canvas {
     const lambda =
       (isMouse = true) =>
       (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const mouse = this._getMouseFromEvent(e, isMouse);
         mouseMoveLambda(mouse);
       };
@@ -311,7 +335,15 @@ export default class Canvas {
   }
 
   onMouseWheel(mouseWheelLambda) {
-    this.canvas.addEventListener("wheel", mouseWheelLambda, false);
+    this.canvas.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        mouseWheelLambda(e);
+      },
+      false
+    );
   }
 
   /**

@@ -64,7 +64,7 @@ export default class Camera {
           };
           const type = e.constructor.name;
           if (type in paintMethodByType) {
-            paintMethodByType[type](e, this, canvas, zBuffer);
+            paintMethodByType[type](e, this, canvas, { zBuffer });
           }
         });
         canvas.paint();
@@ -89,7 +89,7 @@ function intersectImagePlaneInCameraSpace(vertexOut, vertexIn, camera) {
   return p;
 }
 
-function drawLine(line, camera, canvas, zBuffer) {
+function drawLine(line, camera, canvas, options) {
   const { color: rgb } = line;
   const { distanceToPlane } = camera;
   // camera coords
@@ -132,8 +132,8 @@ function drawLine(line, camera, canvas, zBuffer) {
   canvas.drawLine(cameraLine[0].take(0, 2), cameraLine[1].take(0, 2), rgb);
 }
 
-function drawPoint(point, camera, canvas, zBuffer) {
-  const { color: rgb, position, radius } = point;
+function drawPoint(point, camera, canvas, { zBuffer }) {
+  const { color: rgb, position, radius, shader, disableDepthBuffer } = point;
   const { distanceToPlane } = camera;
   // camera coords
   let pointInCameraCoords = position.sub(camera.eye);
@@ -152,6 +152,7 @@ function drawPoint(point, camera, canvas, zBuffer) {
   canvas.drawPoint(projectedPoint.take(0, 2), rgb, {
     radius,
     predicate: (i, j) => {
+      if (disableDepthBuffer) return true;
       const index = canvas.width * i + j;
       const isClose2Cam = zCoord < zBuffer[index];
       if (isClose2Cam) {
@@ -159,5 +160,6 @@ function drawPoint(point, camera, canvas, zBuffer) {
       }
       return isClose2Cam;
     },
+    shader,
   });
 }

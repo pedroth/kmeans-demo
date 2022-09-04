@@ -1,7 +1,16 @@
+import Kmeans from "../algorithms/Kmeans.js";
 import Camera from "../Camera.js";
 import Scene from "../Scene.js";
 import { Vec2, Vec3 } from "../Vec.js";
-import { getDataFromImagePixels } from "./ShaderUtils.js";
+import {
+  getDataFromImagePixels,
+  hexToRgb,
+  STATES,
+  updateShaderOutput,
+} from "./ShaderUtils.js";
+
+const CLUSTER_PXL_RADIUS = 4;
+const CLUSTER_PXL_BOUNDARY_COLOR = [255, 0, 0, 255];
 
 const CUBE = [
   Vec3(0, 0, 0),
@@ -29,8 +38,21 @@ const CUBE_EDGES_INDEXES = [
   [6, 7],
 ];
 
-export default class PointCloud {
-  constructor() {
+const state2lazyColor = {
+  [STATES.CLUSTER]: ({ clusterColor }) => clusterColor(),
+  [STATES.ORIGINAL]: ({ originalColor }) => originalColor(),
+  [STATES.CUSTOM]: ({ customColor }) => customColor(),
+};
+
+export default class PointCloudKmeans {
+  constructor(k) {
+    // model vars
+    this.k = k;
+    this.kmeans = new Kmeans(k, 3);
+
+    // output vars
+    this.states = [...Array(k)].map((_) => ({ type: STATES.CLUSTER }));
+
     // scene vars
     this.camera = new Camera({
       distanceToPlane: 0.1,
@@ -40,9 +62,6 @@ export default class PointCloud {
     this.mouse = Vec2();
     this.isMouseDown = false;
     this.haveSetUpCanvas = false;
-
-    //output vars
-    this.haveGeneratedOutput = false;
   }
 
   _getCubeEdgeColor(endVertex) {
@@ -65,17 +84,47 @@ export default class PointCloud {
     });
   }
 
+  _getColorFromDataPoint(testPoint) {
+    const classification = this.kmeans.predict(testPoint);
+    const index = classification.findIndex((x) => x > 0);
+    const color = state2lazyColor[this.states[index].type]({
+      clusterColor: () => this.kmeans.clusters[index].scale(255),
+      originalColor: () => testPoint.scale(255),
+      customColor: () => hexToRgb(this.states[index]?.color),
+    });
+    return color;
+  }
+
   _updateSceneWithData(data) {
     this.scene.clear();
     this._addCube2Scene();
     for (let i = 0; i < data.length; i++) {
-      const rgb = data[i].scale(255).toArray();
+      const rgb = [...this._getColorFromDataPoint(data[i]).toArray(), 255];
       this.scene.addElement(
         Scene.Point.builder()
           .name(`rgb${i}`)
           .color(...rgb)
           .radius(1)
           .position(data[i])
+          .build()
+      );
+    }
+
+    for (let i = 0; i < this.k; i++) {
+      const rgb = [...this.getRGBArrayFromClusterIndex(i), 255];
+      this.scene.addElement(
+        Scene.Point.builder()
+          .name(`rgbCluster${i}`)
+          .color(...rgb)
+          .radius(CLUSTER_PXL_RADIUS)
+          .disableDepthBuffer(true)
+          .shader(({ dx, dy }) =>
+            Math.abs(dx) === CLUSTER_PXL_RADIUS - 1 ||
+            Math.abs(dy) === CLUSTER_PXL_RADIUS - 1
+              ? CLUSTER_PXL_BOUNDARY_COLOR
+              : rgb
+          )
+          .position(this.kmeans.clusters[i])
           .build()
       );
     }
@@ -126,12 +175,21 @@ export default class PointCloud {
    *                                                                                      */
   //========================================================================================
 
+  getNumberOfClusters() {
+    return this.k;
+  }
+
+  getRGBArrayFromClusterIndex(index) {
+    return this.kmeans.clusters[index].scale(255).toArray();
+  }
+
   /**
    *
    * @param {ArrayBuffer<Number>} imageData: Array<Number> width, height, color
    */
   updateWithImageData(imageData, filter) {
     const data = getDataFromImagePixels(imageData, filter);
+    this.kmeans.update(data);
     this._updateSceneWithData(data);
   }
 
@@ -146,10 +204,6 @@ export default class PointCloud {
   }
 
   updateOutput(outputElement) {
-    if (!this.haveGeneratedOutput) {
-      this._createOutput(outputElement);
-      this.haveGeneratedOutput = true;
-      return;
-    }
+    updateShaderOutput(this, outputElement);
   }
 }

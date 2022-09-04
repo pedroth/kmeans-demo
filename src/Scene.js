@@ -86,11 +86,13 @@ class Point {
    * @param {Number} radius
    * @param {Array4} color
    */
-  constructor(name, radius, color, position) {
+  constructor(name, radius, color, position, shader, disableDepthBuffer) {
     this.name = name;
     this.radius = radius;
     this.color = color;
     this.position = position;
+    this.shader = shader;
+    this.disableDepthBuffer = disableDepthBuffer;
   }
 
   static builder() {
@@ -103,6 +105,8 @@ class PointBuilder {
     this._name;
     this._radius;
     this._color;
+    this._shader = ({ rgb }) => rgb;
+    this._disableDepthBuffer = false;
   }
 
   name(name) {
@@ -125,8 +129,25 @@ class PointBuilder {
     return this;
   }
 
+  shader(shader) {
+    this._shader = shader;
+    return this;
+  }
+
+  disableDepthBuffer(disableDepthBuffer) {
+    this._disableDepthBuffer = disableDepthBuffer;
+    return this;
+  }
+
   build() {
-    const attrs = [this._name, this._radius, this._color, this._position];
+    const attrs = [
+      this._name,
+      this._radius,
+      this._color,
+      this._position,
+      this._shader,
+      this._disableDepthBuffer,
+    ];
     if (attrs.some((x) => x === undefined)) {
       throw new Error("Point is incomplete");
     }
