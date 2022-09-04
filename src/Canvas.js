@@ -227,10 +227,12 @@ export default class Canvas {
     return this;
   }
 
-  drawPoint(x, rgb, radius = 1) {
+  drawPoint(x, rgb, { radius = 1, predicate = (i, j) => true }) {
     radius = Math.max(0, radius);
     const xint = this.canvasTransformInt(...x.toArray());
     const [i, j] = xint.map(Math.floor).toArray();
+    if (i < 0 || i >= this.height || j < 0 || j >= this.width) return;
+    if (!predicate(i, j)) return;
     if (radius === 1) {
       this.drawPxl(i, j, rgb);
       return this;

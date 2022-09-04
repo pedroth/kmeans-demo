@@ -173,8 +173,10 @@ export default class Vec {
     return new Vec(_sanitize_input(values, BUILD_VEC(values.length)));
   }
 
-  static ZERO = (n) => (n === 3 ? new Vector3() : new Vec(BUILD_VEC(n)));
+  static ZERO = (n) =>
+    n === 3 ? new Vector3() : n === 2 ? new Vector2() : new Vec(BUILD_VEC(n));
   static e = (n) => (i) => {
+    if (n === 2) return Vector2.e(i);
     if (n === 3) return Vector3.e(i);
     const vec = BUILD_VEC(n);
     if (i >= 0 && i < n) {
@@ -184,6 +186,7 @@ export default class Vec {
   };
 
   static RANDOM = (n) => {
+    if (n === 2) return Vector2.RANDOM();
     if (n === 3) return Vector3.RANDOM();
     const v = BUILD_VEC(n);
     for (let i = 0; i < n; i++) {

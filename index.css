@@ -114,6 +114,7 @@ button {
 
 .inner {
   margin-right: 5px;
+  width: 100%;
 }
 
 .form-visible {

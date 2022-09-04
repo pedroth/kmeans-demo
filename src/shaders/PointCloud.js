@@ -1,6 +1,6 @@
 import Camera from "../Camera.js";
 import Scene from "../Scene.js";
-import { Vec2, Vec3 } from "../Vec.js";
+import Vec, { Vec2, Vec3 } from "../Vec.js";
 import { getDataFromImagePixels } from "./ShaderUtils.js";
 
 const CUBE = [
@@ -40,26 +40,38 @@ export default class PointCloud {
     this.isMouseDown = false;
     this.haveGeneratedOutput = false;
     this.haveSetUpCanvas = false;
+  }
+
+  _getCubeEdgeColor(endVertex) {
+    return endVertex.scale(255).toArray();
+  }
+
+  _addCube2Scene() {
     CUBE_EDGES_INDEXES.forEach(([i, j]) => {
+      const vertexI = CUBE[i];
+      const vertexJ = CUBE[j];
+      const rgb = this._getCubeEdgeColor(vertexJ);
       this.scene.addElement(
         Scene.Line.builder()
           .name(`cube-${i}_${j}`)
-          .start(CUBE[i])
-          .end(CUBE[j])
-          .color(255, 255, 255, 255)
+          .start(vertexI)
+          .end(vertexJ)
+          .color(...rgb, 255)
           .build()
       );
     });
   }
 
   _updateSceneWithData(data) {
+    this.scene.clear();
+    this._addCube2Scene();
     for (let i = 0; i < data.length; i++) {
       const rgb = data[i].scale(255).toArray();
       this.scene.addElement(
         Scene.Point.builder()
           .name(`rgb${i}`)
           .color(...rgb)
-          .radius(2)
+          .radius(1)
           .position(data[i])
           .build()
       );
@@ -128,15 +140,6 @@ export default class PointCloud {
     this.camera.orbit();
     canvasOut.fill();
     this.camera.sceneShot(this.scene).to(canvasOut);
-
-    // const dataOut = canvasOut.getData();
-    // for (let i = 0; i < dataOut.length; i += 4) {
-    //   dataOut[i] = imageData[i];
-    //   dataOut[i + 1] = imageData[i + 1];
-    //   dataOut[i + 2] = imageData[i + 2];
-    //   dataOut[i + 3] = 255;
-    // }
-    // canvasOut.paint();
   }
 
   updateOutput(outputElement) {

@@ -16,7 +16,7 @@ function createAppState() {
     imageFile: undefined,
     algorithmSelect: SHADERS.kmeans,
     numberOfClusters: 2,
-    samplePercentage: 1.0,
+    samplePercentage: 0.75,
     isLearning: true,
   };
   appState.algorithmSelect.instance = appState.algorithmSelect.build(

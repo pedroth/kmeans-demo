@@ -1,6 +1,6 @@
 import Scene from "./Scene.js";
 import { matrixTransposeProd } from "./Utils.js";
-import { Vec3, Vec2 } from "./Vec.js";
+import Vec, { Vec3, Vec2, BUILD_VEC } from "./Vec.js";
 
 export default class Camera {
   /**
@@ -12,7 +12,7 @@ export default class Camera {
   constructor({
     distanceToPlane = 1,
     alpha = Math.PI / 4,
-    param = Vec3(2, -Math.PI / 2, Math.PI / 2),
+    param = Vec3(2, 0, 0),
     focalPoint = Vec3(0, 0, 0),
     eye = Vec3(2, 0, 0),
   }) {
@@ -52,6 +52,9 @@ export default class Camera {
   sceneShot(scene) {
     return {
       to: (canvas) => {
+        const zBuffer = BUILD_VEC(canvas.width * canvas.height).fill(
+          Number.MAX_VALUE
+        );
         canvas.min = Vec2(1, 1).scale(-this.canvasSize);
         canvas.max = Vec2(1, 1).scale(this.canvasSize);
         scene.getElements().forEach((e) => {
@@ -61,7 +64,7 @@ export default class Camera {
           };
           const type = e.constructor.name;
           if (type in paintMethodByType) {
-            paintMethodByType[type](e, this, canvas);
+            paintMethodByType[type](e, this, canvas, zBuffer);
           }
         });
         canvas.paint();
@@ -86,7 +89,7 @@ function intersectImagePlaneInCameraSpace(vertexOut, vertexIn, camera) {
   return p;
 }
 
-function drawLine(line, camera, canvas) {
+function drawLine(line, camera, canvas, zBuffer) {
   const { color: rgb } = line;
   const { distanceToPlane } = camera;
   // camera coords
@@ -129,8 +132,8 @@ function drawLine(line, camera, canvas) {
   canvas.drawLine(cameraLine[0].take(0, 2), cameraLine[1].take(0, 2), rgb);
 }
 
-function drawPoint(point, camera, canvas) {
-  const { color: rgb, position } = point;
+function drawPoint(point, camera, canvas, zBuffer) {
+  const { color: rgb, position, radius } = point;
   const { distanceToPlane } = camera;
   // camera coords
   let pointInCameraCoords = position.sub(camera.eye);
@@ -146,5 +149,15 @@ function drawPoint(point, camera, canvas) {
     .scale(1 / zCoord);
 
   // draw
-  canvas.drawPoint(projectedPoint.take(0, 2), rgb);
+  canvas.drawPoint(projectedPoint.take(0, 2), rgb, {
+    radius,
+    predicate: (i, j) => {
+      const index = canvas.width * i + j;
+      const isClose2Cam = zCoord < zBuffer[index];
+      if (isClose2Cam) {
+        zBuffer[index] = zCoord;
+      }
+      return isClose2Cam;
+    },
+  });
 }
