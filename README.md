@@ -2,4 +2,4 @@
 
 Clustering colors in video.
 
-Old version [here](/old/index.html)
+Old version [here](https://pedroth.github.io/kmeans-demo/old/index.html)
