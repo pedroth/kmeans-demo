@@ -84,32 +84,7 @@ export default class PointCloudKmeans {
     });
   }
 
-  _getColorFromDataPoint(testPoint) {
-    const classification = this.kmeans.predict(testPoint);
-    const index = classification.findIndex((x) => x > 0);
-    const color = state2lazyColor[this.states[index].type]({
-      clusterColor: () => this.kmeans.clusters[index].scale(255),
-      originalColor: () => testPoint.scale(255),
-      customColor: () => hexToRgb(this.states[index]?.color),
-    });
-    return color;
-  }
-
-  _updateSceneWithData(data) {
-    this.scene.clear();
-    this._addCube2Scene();
-    for (let i = 0; i < data.length; i++) {
-      const rgb = [...this._getColorFromDataPoint(data[i]).toArray(), 255];
-      this.scene.addElement(
-        Scene.Point.builder()
-          .name(`rgb${i}`)
-          .color(...rgb)
-          .radius(1)
-          .position(data[i])
-          .build()
-      );
-    }
-
+  _addClusters2Scene() {
     for (let i = 0; i < this.k; i++) {
       const rgb = [...this.getRGBArrayFromClusterIndex(i), 255];
       this.scene.addElement(
@@ -128,6 +103,38 @@ export default class PointCloudKmeans {
           .build()
       );
     }
+  }
+
+  _getColorFromDataPoint(testPoint) {
+    const classification = this.kmeans.predict(testPoint);
+    const index = classification.findIndex((x) => x > 0);
+    const color = state2lazyColor[this.states[index].type]({
+      clusterColor: () => this.kmeans.clusters[index].scale(255),
+      originalColor: () => testPoint.scale(255),
+      customColor: () => hexToRgb(this.states[index]?.color),
+    });
+    return color;
+  }
+
+  _addPointCloudData2Scene(data) {
+    for (let i = 0; i < data.length; i++) {
+      const rgb = [...this._getColorFromDataPoint(data[i]).toArray(), 255];
+      this.scene.addElement(
+        Scene.Point.builder()
+          .name(`rgb${i}`)
+          .color(...rgb)
+          .radius(1)
+          .position(data[i])
+          .build()
+      );
+    }
+  }
+
+  _updateSceneWithData(data) {
+    this.scene.clear();
+    this._addCube2Scene();
+    this._addPointCloudData2Scene(data);
+    this._addClusters2Scene();
   }
 
   _createOutput(outputElement) {
