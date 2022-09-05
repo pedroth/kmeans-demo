@@ -60,6 +60,7 @@ export default class Camera {
         scene.getElements().forEach((e) => {
           const paintMethodByType = {
             [Scene.Line.name]: drawLine,
+            [Scene.Path.name]: drawPath,
             [Scene.Point.name]: drawPoint,
           };
           const type = e.constructor.name;
@@ -89,7 +90,7 @@ function intersectImagePlaneInCameraSpace(vertexOut, vertexIn, camera) {
   return p;
 }
 
-function drawLine(line, camera, canvas, options) {
+function drawLine(line, camera, canvas, { zBuffer }) {
   const { color: rgb } = line;
   const { distanceToPlane } = camera;
   // camera coords
@@ -162,4 +163,17 @@ function drawPoint(point, camera, canvas, { zBuffer }) {
     },
     shader,
   });
+}
+
+function drawPath(path, camera, canvas, { zBuffer }) {
+  const { path: lines } = path;
+  for (let i = 0; i < lines.length - 1; i++) {
+    const line = Scene.Line.builder()
+      .name(`${path.name}_${i}`)
+      .start(lines[i])
+      .end(lines[i + 1])
+      .color(...path.color)
+      .build();
+    drawLine(line, camera, canvas, { zBuffer });
+  }
 }

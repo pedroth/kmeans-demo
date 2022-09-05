@@ -14,6 +14,11 @@ export default class GMM {
       this.sigmas[i] = Math.random();
       this.phis[i] = UNIFORM;
     }
+    // setInterval(() => {
+    //   console.log("clusters", this.clusters);
+    //   console.log("sigmas", this.sigmas);
+    //   console.log("phis", this.phis);
+    // }, 10000);
   }
 
   /**

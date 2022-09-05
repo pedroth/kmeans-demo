@@ -4,7 +4,7 @@ export default class Scene {
   }
 
   addElement(elem) {
-    const classes = [Line, Point];
+    const classes = [Line, Point, Path];
     if (!classes.some((c) => elem instanceof c)) return this;
     const { name } = elem;
     this.scene[name] = elem;
@@ -78,6 +78,57 @@ class LineBuilder {
 }
 
 Scene.Line = Line;
+
+class Path {
+  /**
+   *
+   * @param {String} name
+   * @param {Array<Vec3>} path
+   * @param {Array4} color
+   */
+  constructor(name, path, color) {
+    this.name = name;
+    this.path = path;
+    this.color = color;
+  }
+
+  static builder() {
+    return new PathBuilder();
+  }
+}
+
+class PathBuilder {
+  constructor() {
+    this._name;
+    this._path;
+    this._color;
+  }
+
+  name(name) {
+    this._name = name;
+    return this;
+  }
+
+  path(path) {
+    this._path = path;
+    return this;
+  }
+
+  color(r = 0, g = 0, b = 0, alpha = 255) {
+    this._color = [r, g, b, alpha];
+    return this;
+  }
+
+  build() {
+    const attrs = [this._name, this._path, this._color];
+    if (attrs.some((x) => x === undefined)) {
+      throw new Error("Path is incomplete");
+    }
+    return new Path(...attrs);
+  }
+}
+
+Scene.Path = Path;
 
 class Point {
   /**
