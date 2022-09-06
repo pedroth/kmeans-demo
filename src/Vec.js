@@ -166,15 +166,26 @@ export default class Vec {
   }
 
   static fromArray(array) {
+    if (array.length === 2) return Vector2.fromArray(array);
+    if (array.length === 3) return Vector3.fromArray(array);
     return new Vec(_sanitize_input(array, BUILD_VEC(array.length)));
   }
 
   static of(...values) {
+    if (values.length === 2) return Vector2.of(...values);
+    if (values.length === 3) return Vector3.of(...values);
     return new Vec(_sanitize_input(values, BUILD_VEC(values.length)));
   }
 
   static ZERO = (n) =>
     n === 3 ? new Vector3() : n === 2 ? new Vector2() : new Vec(BUILD_VEC(n));
+
+  static ONES = (n) => {
+    if (n === 2) return Vector2.ONES;
+    if (n === 3) return Vector3.ONES;
+    return Vec.ZERO(n).map(() => 1);
+  };
+
   static e = (n) => (i) => {
     if (n === 2) return Vector2.e(i);
     if (n === 3) return Vector3.e(i);
@@ -342,6 +353,8 @@ class Vector3 {
   static RANDOM = () => {
     return new Vector3(Math.random(), Math.random(), Math.random());
   };
+
+  static ONES = new Vector3(1, 1, 1);
 }
 
 class Vector2 {
@@ -474,4 +487,6 @@ class Vector2 {
   static RANDOM = () => {
     return new Vector2(Math.random(), Math.random());
   };
+
+  static ONES = new Vector2(1, 1);
 }
