@@ -54,10 +54,10 @@ export default class GMM {
         const mu = this.clusters[j];
         sigma += w * rgb.sub(mu).squareLength();
       }
-      this.sigmas[j] = sigma / (acc * n * this.dim);
+      this.sigmas[j] = sigma / (acc * this.dim);
       this.phis[j] = acc / n;
       // doesn't let it go to zero
-      if (this.sigmas[j] < 1e-5) this.sigmas[j] += 1e-3;
+      // if (this.sigmas[j] < 1e-5) this.sigmas[j] += 1e-3;
     }
   }
 

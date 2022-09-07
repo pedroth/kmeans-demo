@@ -5,7 +5,7 @@
 //========================================================================================
 
 import Canvas from "../src/Canvas.js";
-import { createWebCamFromVideo } from "../src/Utils.js";
+import { createWebCamFromVideo, measureTime, powInt } from "../src/Utils.js";
 
 let isVideo = true;
 const canvas = new Canvas(document.getElementById("canvas"));
@@ -235,23 +235,6 @@ let myNorm = function (v) {
  *                                                                                      */
 //========================================================================================
 
-let SUM = {};
-let COUNT = {};
-export function measureTime(lambda, label = "") {
-  const startTime = performance.now();
-  const ans = lambda();
-  const endTime = performance.now();
-  const diff = endTime - startTime;
-  if (!(label in SUM)) {
-    SUM[label] = 0;
-    COUNT[label] = 0;
-  }
-  SUM[label] += diff;
-  COUNT[label] += 1;
-  console.log(`Performance ${diff}s ${label}`);
-  return ans;
-}
-
 function getImageIndex(x, size) {
   return 4 * (size[0] * x[0] + x[1]);
 }
@@ -396,10 +379,10 @@ function runKmeans(
 //========================================================================================
 
 function gaussian(x, mu, sigma) {
-  let dist = myNorm(diff(x, mu));
+  const squareDist = squaredNorm(diff(x, mu));
   return (
-    Math.exp(-(dist * dist) / (2 * sigma * sigma)) /
-    (Math.sqrt(2 * Math.PI) * sigma)
+    Math.exp(-squareDist / (2 * sigma)) /
+    Math.sqrt(powInt(2 * Math.PI * sigma, 3))
   );
 }
 
@@ -417,24 +400,26 @@ function classifyDataGMM(x) {
 }
 
 function updateClustersGMM(weights, sampleData) {
-  for (let i = 0; i < numberOfCluster; i++) {
-    const w = weights[i];
-    let n = w.length;
+  const n = sampleData.length;
+  for (let j = 0; j < numberOfCluster; j++) {
+    const w = weights[j];
     let mu = vec3(0, 0, 0);
     let acc = 0;
-    for (let j = 0; j < n; j++) {
-      let rgb = sampleData[j];
-      mu = add(mu, scalarMult(w[j], rgb));
-      acc += w[j];
+    for (let i = 0; i < n; i++) {
+      let rgb = sampleData[i];
+      mu = add(mu, scalarMult(w[i], rgb));
+      acc += w[i];
     }
-    clusters[i] = scalarMult(1 / acc, mu);
+    clusters[j] = scalarMult(1 / acc, mu);
     let sigma = 0;
-    for (let j = 0; j < n; j++) {
-      let rgb = sampleData[j];
-      sigma += w[j] * squaredNorm(diff(rgb, clusters[i]));
+    for (let i = 0; i < n; i++) {
+      let rgb = sampleData[i];
+      sigma += w[i] * squaredNorm(diff(rgb, clusters[j]));
     }
-    sigmas[i] = Math.sqrt(sigma / acc);
-    phi[i] = acc / n;
+    sigmas[j] = sigma / (acc * 3);
+    phi[j] = acc / n;
+    // doesn't let it go to zero
+    if (sigmas[j] < 1e-3) sigmas[j] += 1e-3;
   }
 }
 
@@ -456,10 +441,10 @@ function drawClustersGMM(image, classifyFunction, stateMachine) {
 
 function classifyIntoClustersGMM(sampleData, classifyFunction) {
   let clusterIndex = [];
-  for (let i = 0; i < numberOfCluster; i++) {
-    clusterIndex[i] = [];
+  for (let j = 0; j < numberOfCluster; j++) {
+    clusterIndex[j] = [];
   }
-  for (let i = 0; i < sampleData.length / 10; i++) {
+  for (let i = 0; i < sampleData.length; i++) {
     let weights = classifyFunction(sampleData[i]);
     for (let j = 0; j < weights.length; j++) {
       clusterIndex[j][i] = weights[j];
@@ -499,7 +484,7 @@ function initClusters() {
       255 * Math.random()
     );
     clustersState[i] = 1;
-    sigmas[i] = 255 * Math.random();
+    sigmas[i] = 255;
     phi[i] = 1.0 / numberOfCluster;
   }
 }

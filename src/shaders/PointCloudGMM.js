@@ -1,7 +1,7 @@
 import GMM from "../algorithms/GMM.js";
 import Camera from "../Camera.js";
 import Scene from "../Scene.js";
-import Vec, { BUILD_VEC, Vec2, Vec3 } from "../Vec.js";
+import Vec, { Vec2, Vec3 } from "../Vec.js";
 import {
   getDataFromImagePixels,
   hexToRgb,
@@ -165,29 +165,19 @@ export default class PointCloudGMM {
   _addSigmas2Scene() {
     for (let i = 0; i < this.k; i++) {
       const rgb = [255, 255, 0, 255];
+      const sigma = this.gmm.sigmas[i];
+      const radius = Math.pow(sigma, 1 / this.gmm.dim);
       this.scene.addElement(
         Scene.Path.builder()
           .name(`sigma-vertical${i}`)
-          .path(
-            this._getCircleIn(
-              this.gmm.clusters[i],
-              Vec3(1, 0, 0),
-              this.gmm.sigmas[i]
-            )
-          )
+          .path(this._getCircleIn(this.gmm.clusters[i], Vec3(1, 0, 0), radius))
           .color(...rgb)
           .build()
       );
       this.scene.addElement(
         Scene.Path.builder()
           .name(`sigma-horizontal${i}`)
-          .path(
-            this._getCircleIn(
-              this.gmm.clusters[i],
-              Vec3(0, 0, 1),
-              this.gmm.sigmas[i]
-            )
-          )
+          .path(this._getCircleIn(this.gmm.clusters[i], Vec3(0, 0, 1), radius))
           .color(...rgb)
           .build()
       );
