@@ -191,6 +191,19 @@ export default class PointCloudGMM {
           .color(...rgb)
           .build()
       );
+      // this.scene.addElement(
+      //   Scene.Path.builder()
+      //     .name(`phis-horizontal${i}`)
+      //     .path(
+      //       this._getCircleIn(
+      //         this.gmm.clusters[i],
+      //         Vec3(0, 1, 0),
+      //         this.gmm.phis[i] / 2
+      //       )
+      //     )
+      //     .color(255, 0, 0, 255)
+      //     .build()
+      // );
     }
   }
 

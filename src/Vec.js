@@ -324,8 +324,11 @@ class Vector3 {
     return this.sub(u).length() < precision;
   }
 
-  take(n = 0, m = this._vec.length) {
-    return Vec.of(this.x, this.y, this.z).take(n, m);
+  take(n = 0, m = 3) {
+    const array = [this.x, this.y, this.z].slice(n, m);
+    if (array.length === 2) return Vector2.fromArray(array);
+    if (array.length === 3) return Vector3.fromArray(array);
+    return Vec.fromArray(array);
   }
 
   findIndex(predicate) {
@@ -460,8 +463,10 @@ class Vector2 {
     return this.sub(u).length() < precision;
   }
 
-  take(n = 0, m = this._vec.length) {
-    return Vec.of(this.x, this.y).take(n, m);
+  take(n = 0, m = 2) {
+    const array = [this.x, this.y].slice(n, m);
+    if (array.length === 2) return Vector2.fromArray(array);
+    return Vec.fromArray(array);
   }
 
   findIndex(predicate) {

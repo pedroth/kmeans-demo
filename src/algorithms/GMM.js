@@ -11,14 +11,9 @@ export default class GMM {
     const UNIFORM = 1 / k;
     for (let i = 0; i < k; i++) {
       this.clusters[i] = Vec.RANDOM(dim);
-      this.sigmas[i] = Math.random();
+      this.sigmas[i] = 1 + Math.random();
       this.phis[i] = UNIFORM;
     }
-    // setInterval(() => {
-    //   console.log("clusters", this.clusters);
-    //   console.log("sigmas", this.sigmas);
-    //   console.log("phis", this.phis);
-    // }, 10000);
   }
 
   /**
@@ -42,37 +37,34 @@ export default class GMM {
    */
   _updateParameters(weightsPerData, data) {
     const n = data.length;
-    for (let i = 0; i < this.k; i++) {
+    for (let j = 0; j < this.k; j++) {
       let mu = Vec.ZERO(this.dim);
       let acc = 0;
-      for (let j = 0; j < n; j++) {
-        const rgb = data[j];
-        const w = weightsPerData[j].get(i);
+      for (let i = 0; i < n; i++) {
+        const rgb = data[i];
+        const w = weightsPerData[i].get(j);
         mu = mu.add(rgb.scale(w));
         acc += w;
       }
-      this.clusters[i] = mu.scale(1 / acc);
+      this.clusters[j] = mu.scale(1 / acc);
       let sigma = 0;
-      for (let j = 0; j < n; j++) {
-        const rgb = data[j];
-        const w = weightsPerData[j].get(i);
-        const mu = this.clusters[i];
-        sigma += w * mu.sub(rgb).squareLength();
+      for (let i = 0; i < n; i++) {
+        const rgb = data[i];
+        const w = weightsPerData[i].get(j);
+        const mu = this.clusters[j];
+        sigma += w * rgb.sub(mu).squareLength();
       }
-      // this.sigmas[i] = Math.sqrt(sigma / acc);
-      this.sigmas[i] = Math.sqrt((2 / (3 * acc)) * sigma);
-      this.phis[i] = acc / n;
+      this.sigmas[j] = sigma / (acc * n * this.dim);
+      this.phis[j] = acc / n;
+      // doesn't let it go to zero
+      if (this.sigmas[j] < 1e-5) this.sigmas[j] += 1e-3;
     }
   }
 
   _gaussian(x, mu, sigma) {
-    let dist = x.sub(mu).length();
-    // return (
-    //   Math.exp(-((dist * dist) / (2 * sigma * sigma))) /
-    //   (Math.sqrt(2 * Math.PI) * sigma)
-    // );
+    const squareDist = x.sub(mu).squareLength();
     return (
-      Math.exp(-((dist * dist) / (2 * sigma * sigma))) /
+      Math.exp(-squareDist / (2 * sigma)) /
       Math.sqrt(powInt(2 * Math.PI * sigma, this.dim))
     );
   }
