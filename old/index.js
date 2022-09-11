@@ -419,7 +419,7 @@ function updateClustersGMM(weights, sampleData) {
     sigmas[j] = sigma / (acc * 3);
     phi[j] = acc / n;
     // doesn't let it go to zero
-    if (sigmas[j] < 1e-3) sigmas[j] += 1e-3;
+    if (sigmas[j] < 1e-3) sigmas[j] = 1e-3;
   }
 }
 
