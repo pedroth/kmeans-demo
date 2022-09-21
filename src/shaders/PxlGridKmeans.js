@@ -15,12 +15,16 @@ const state2lazyColor = {
   [STATES.CUSTOM]: ({ customColor }) => customColor(),
 };
 
+const GRID_WIDTH = 3;
+const OUTPUT_CANVAS_SIZE = GRID_WIDTH * 20;
+const DIM = GRID_WIDTH * GRID_WIDTH * GRID_WIDTH;
 const MAX_CANVAS_INDEX = 4 * CANVAS_SIZE.width * CANVAS_SIZE.height - 1;
 
 export default class PxlGridKmeans {
   constructor(k) {
     this.k = k;
-    this.kmeans = new Kmeans(k, 27);
+    // clusters are grid^3 dimensional vectors which index represents colors in row major
+    this.kmeans = new Kmeans(k, DIM);
     this.states = [...Array(k)].map((_) => ({ type: STATES.CLUSTER }));
     this.haveGeneratedOutput = false;
   }
@@ -34,8 +38,8 @@ export default class PxlGridKmeans {
   _getGridVec(i, j, imageData, width = CANVAS_SIZE.width) {
     const gridData = [];
     const index = 4 * (i * width + j);
-    for (let dx = 0; dx < 3; dx++) {
-      for (let dy = 0; dy < 3; dy++) {
+    for (let dx = 0; dx < GRID_WIDTH; dx++) {
+      for (let dy = 0; dy < GRID_WIDTH; dy++) {
         const innerIndex = index + 4 * (dx * width + dy);
         const r = imageData[Math.min(innerIndex, MAX_CANVAS_INDEX)] / 255;
         const g = imageData[Math.min(innerIndex + 1, MAX_CANVAS_INDEX)] / 255;
@@ -56,8 +60,8 @@ export default class PxlGridKmeans {
   ) {
     const data = [];
     let k = 0;
-    for (let i = 0; i < width; i += 3) {
-      for (let j = 0; j < height; j += 3) {
+    for (let i = 0; i < width; i += GRID_WIDTH) {
+      for (let j = 0; j < height; j += GRID_WIDTH) {
         if (filter()) {
           data[k++] = this._getGridVec(i, j, imageData);
         }
@@ -74,10 +78,27 @@ export default class PxlGridKmeans {
     width = CANVAS_SIZE.width
   ) {
     const index = 4 * (i * width + j);
-    for (let dx = 0; dx < 3; dx++) {
-      for (let dy = 0; dy < 3; dy++) {
+    for (let dx = 0; dx < GRID_WIDTH; dx++) {
+      for (let dy = 0; dy < GRID_WIDTH; dy++) {
         const innerIndex = index + 4 * (dx * width + dy);
-        const colorGridIndex = 3 * (dy + 3 * dx);
+        const colorGridIndex = GRID_WIDTH * (dy + GRID_WIDTH * dx);
+        canvasData[innerIndex] = colorGrid[colorGridIndex];
+        canvasData[innerIndex + 1] = colorGrid[colorGridIndex + 1];
+        canvasData[innerIndex + 2] = colorGrid[colorGridIndex + 2];
+        canvasData[innerIndex + 3] = 255;
+      }
+    }
+  }
+
+  _paintOutputCanvasWithColorGrid(colorGrid, canvas) {
+    const canvasData = canvas.getData();
+    const size = canvas.width;
+    for (let dx = 0; dx < size; dx++) {
+      for (let dy = 0; dy < size; dy++) {
+        const innerIndex = 4 * (dx * size + dy);
+        const dxi = Math.floor(GRID_WIDTH * (dx / size));
+        const dyi = Math.floor(GRID_WIDTH * (dy / size));
+        const colorGridIndex = GRID_WIDTH * (GRID_WIDTH * dxi + dyi);
         canvasData[innerIndex] = colorGrid[colorGridIndex];
         canvasData[innerIndex + 1] = colorGrid[colorGridIndex + 1];
         canvasData[innerIndex + 2] = colorGrid[colorGridIndex + 2];
@@ -105,13 +126,13 @@ export default class PxlGridKmeans {
         "border-style": "solid",
       });
       const clusterCanvas = document.createElement("canvas");
-      clusterCanvas.setAttribute("width", 3);
-      clusterCanvas.setAttribute("height", 3);
+      clusterCanvas.setAttribute("width", OUTPUT_CANVAS_SIZE);
+      clusterCanvas.setAttribute("height", OUTPUT_CANVAS_SIZE);
       Object.assign(clusterCanvas.style, {
         flex: 1,
       });
       const canvas = new Canvas(clusterCanvas);
-      this._paintDataWithColorGrid(0, 0, clusterGrid, canvas.getData(), 3);
+      this._paintOutputCanvasWithColorGrid(clusterGrid, canvas);
       canvas.paint();
       clusterDiv.appendChild(clusterCanvas);
       outputElement.appendChild(clusterDiv);
@@ -143,8 +164,8 @@ export default class PxlGridKmeans {
 
   paintImage({ imageData, canvasOut }) {
     const dataOut = canvasOut.getData();
-    for (let i = 0; i < CANVAS_SIZE.width; i += 3) {
-      for (let j = 0; j < CANVAS_SIZE.height; j += 3) {
+    for (let i = 0; i < CANVAS_SIZE.width; i += GRID_WIDTH) {
+      for (let j = 0; j < CANVAS_SIZE.height; j += GRID_WIDTH) {
         const testData = this._getGridVec(i, j, imageData);
         const colorGrid = this._getColorFromDataPoint(testData);
         this._paintDataWithColorGrid(i, j, colorGrid, dataOut);
@@ -163,7 +184,8 @@ export default class PxlGridKmeans {
       const clusterGrid = this.getGridArrayFromClusterIndex(i);
       Array.from(outer.children).forEach((inner, j) => {
         const canvas = new Canvas(inner);
-        this._paintDataWithColorGrid(0, 0, clusterGrid, canvas.getData(), 3);
+        console.log("debug cluster grid", clusterGrid);
+        this._paintOutputCanvasWithColorGrid(clusterGrid, canvas);
         canvas.paint();
       });
     });
