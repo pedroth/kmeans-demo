@@ -113,6 +113,7 @@ export default class PxlGridKmeans {
       display: "flex",
       height: "75px",
       "padding-top": "10px",
+      "padding-bottom": "10px",
     });
     const k = this.k;
     for (let i = 0; i < k; i++) {
@@ -120,7 +121,7 @@ export default class PxlGridKmeans {
       const clusterDiv = document.createElement("div");
       Object.assign(clusterDiv.style, {
         display: "flex",
-        "flex-direction": "row",
+        "flex-direction": "column",
         height: "100%",
         width: "100%",
         "border-style": "solid",
@@ -164,8 +165,8 @@ export default class PxlGridKmeans {
 
   paintImage({ imageData, canvasOut }) {
     const dataOut = canvasOut.getData();
-    for (let i = 0; i < CANVAS_SIZE.width; i += GRID_WIDTH) {
-      for (let j = 0; j < CANVAS_SIZE.height; j += GRID_WIDTH) {
+    for (let i = 0; i < CANVAS_SIZE.height; i += GRID_WIDTH) {
+      for (let j = 0; j < CANVAS_SIZE.width; j += GRID_WIDTH) {
         const testData = this._getGridVec(i, j, imageData);
         const colorGrid = this._getColorFromDataPoint(testData);
         this._paintDataWithColorGrid(i, j, colorGrid, dataOut);
@@ -184,7 +185,6 @@ export default class PxlGridKmeans {
       const clusterGrid = this.getGridArrayFromClusterIndex(i);
       Array.from(outer.children).forEach((inner, j) => {
         const canvas = new Canvas(inner);
-        console.log("debug cluster grid", clusterGrid);
         this._paintOutputCanvasWithColorGrid(clusterGrid, canvas);
         canvas.paint();
       });
