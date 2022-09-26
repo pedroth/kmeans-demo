@@ -1,5 +1,7 @@
 import { Vec3 } from "./Vec.js";
 
+export const CANVAS_SIZE = { width: 320, height: 240 };
+
 export function createWebCamFromVideo(domVideo) {
   // https://davidwalsh.name/browser-camera
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {

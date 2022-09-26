@@ -59,6 +59,7 @@ const OUTPUT_STYLE = {
   display: "flex",
   height: "75px",
   "padding-top": "10px",
+  "padding-bottom": "10px",
 };
 
 function _getClusterColorStateComponent({ shader, index, closeModal }) {

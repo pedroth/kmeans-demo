@@ -11,7 +11,8 @@ import ColorKmeans from "./src/shaders/ColorKmeans.js";
 import PointCloud from "./src/shaders/PointCloud.js";
 import PointCloudGMM from "./src/shaders/PointCloudGMM.js";
 import PointCloudKmeans from "./src/shaders/PointCloudKmeans.js";
-import { createWebCamFromVideo, measureTime } from "./src/Utils.js";
+import PxlGridKmeans from "./src/shaders/PxlGridKmeans.js";
+import { CANVAS_SIZE, createWebCamFromVideo } from "./src/Utils.js";
 
 function createAppState() {
   const appState = {
@@ -36,6 +37,10 @@ function resetAppState(appState) {
 const SHADERS = {
   kmeans: { name: "kmeans", build: (k) => new ColorKmeans(k) },
   gmm: { name: "gmm", build: (k) => new ColorGMM(k) },
+  "kmeans 3x3 grid of pxl": {
+    name: "kmeans 3x3 grid of pxl",
+    build: (k) => new PxlGridKmeans(k),
+  },
   "point cloud": { name: "point cloud", build: (_) => new PointCloud() },
   "point cloud + kmeans": {
     name: "point cloud + kmeans",
@@ -78,8 +83,8 @@ function createCanvas({ width, height }) {
 function createCanvasSpace() {
   const canvasSpace = { dom: document.createElement("div") };
   canvasSpace.dom.setAttribute("class", "canvasSpace");
-  const canvasInput = createCanvas({ width: 320, height: 240 });
-  const canvasOutput = createCanvas({ width: 320, height: 240 });
+  const canvasInput = createCanvas(CANVAS_SIZE);
+  const canvasOutput = createCanvas(CANVAS_SIZE);
   canvasSpace.dom.appendChild(canvasInput);
   canvasSpace.dom.appendChild(canvasOutput);
 
