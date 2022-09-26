@@ -121,7 +121,7 @@ export default class PxlGridKmeans {
       const clusterDiv = document.createElement("div");
       Object.assign(clusterDiv.style, {
         display: "flex",
-        "flex-direction": "column",
+        "flex-direction": "row",
         height: "100%",
         width: "100%",
         "border-style": "solid",
