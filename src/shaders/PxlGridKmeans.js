@@ -15,9 +15,10 @@ const state2lazyColor = {
   [STATES.CUSTOM]: ({ customColor }) => customColor(),
 };
 
-const GRID_WIDTH = 3;
+const GRID_WIDTH = 10;
+const COLOR_DIM = 3;
 const OUTPUT_CANVAS_SIZE = GRID_WIDTH * 20;
-const DIM = GRID_WIDTH * GRID_WIDTH * GRID_WIDTH;
+const DIM = GRID_WIDTH * GRID_WIDTH * COLOR_DIM;
 const MAX_CANVAS_INDEX = 4 * CANVAS_SIZE.width * CANVAS_SIZE.height - 1;
 
 export default class PxlGridKmeans {
@@ -81,7 +82,7 @@ export default class PxlGridKmeans {
     for (let dx = 0; dx < GRID_WIDTH; dx++) {
       for (let dy = 0; dy < GRID_WIDTH; dy++) {
         const innerIndex = index + 4 * (dx * width + dy);
-        const colorGridIndex = GRID_WIDTH * (dy + GRID_WIDTH * dx);
+        const colorGridIndex = COLOR_DIM * (dy + GRID_WIDTH * dx);
         canvasData[innerIndex] = colorGrid[colorGridIndex];
         canvasData[innerIndex + 1] = colorGrid[colorGridIndex + 1];
         canvasData[innerIndex + 2] = colorGrid[colorGridIndex + 2];
@@ -98,7 +99,7 @@ export default class PxlGridKmeans {
         const innerIndex = 4 * (dx * size + dy);
         const dxi = Math.floor(GRID_WIDTH * (dx / size));
         const dyi = Math.floor(GRID_WIDTH * (dy / size));
-        const colorGridIndex = GRID_WIDTH * (GRID_WIDTH * dxi + dyi);
+        const colorGridIndex = COLOR_DIM * (GRID_WIDTH * dxi + dyi);
         canvasData[innerIndex] = colorGrid[colorGridIndex];
         canvasData[innerIndex + 1] = colorGrid[colorGridIndex + 1];
         canvasData[innerIndex + 2] = colorGrid[colorGridIndex + 2];
