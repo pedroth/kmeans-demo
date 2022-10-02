@@ -21,6 +21,7 @@ function createAppState() {
     numberOfClusters: 2,
     samplePercentage: 0.75,
     isLearning: true,
+    gridSize: 3,
   };
   appState.algorithmSelect.instance = appState.algorithmSelect.build(
     appState.numberOfClusters
@@ -30,16 +31,17 @@ function createAppState() {
 
 function resetAppState(appState) {
   appState.algorithmSelect.instance = appState.algorithmSelect.build(
-    appState.numberOfClusters
+    appState.numberOfClusters,
+    appState.gridSize
   );
 }
 
 const SHADERS = {
   kmeans: { name: "kmeans", build: (k) => new ColorKmeans(k) },
   gmm: { name: "gmm", build: (k) => new ColorGMM(k) },
-  "kmeans 3x3 grid of pxl": {
-    name: "kmeans 3x3 grid of pxl",
-    build: (k) => new PxlGridKmeans(k),
+  "kmeans grid": {
+    name: "kmeans grid",
+    build: (k, size) => new PxlGridKmeans(k, size),
   },
   "point cloud": { name: "point cloud", build: (_) => new PointCloud() },
   "point cloud + kmeans": {
@@ -128,6 +130,15 @@ function createInputSpace(appState) {
         .min(0)
         .max(1)
         .step(0.01),
+      GUI.range("gridSize")
+        .visibility((state) => {
+          return state.algorithmSelect.name.includes("grid");
+        })
+        .value(appState.gridSize)
+        .label("Grid size")
+        .min(1)
+        .max(50)
+        .step(1),
       GUI.object("learning")
         .label("Learning")
         .children(
@@ -149,7 +160,8 @@ function createInputSpace(appState) {
           if (newState.algorithmSelect !== oldState.algorithmSelect) {
             appState.algorithmSelect = SHADERS[newState.algorithmSelect];
             appState.algorithmSelect.instance = appState.algorithmSelect.build(
-              newState.numberOfClusters
+              newState.numberOfClusters,
+              newState.gridSize
             );
           }
           return;
@@ -160,12 +172,19 @@ function createInputSpace(appState) {
       });
       if (oldState.numberOfClusters !== newState.numberOfClusters) {
         appState.algorithmSelect.instance = appState.algorithmSelect.build(
-          newState.numberOfClusters
+          newState.numberOfClusters,
+          newState.gridSize
+        );
+      }
+      if (oldState.gridSize !== newState.gridSize) {
+        appState.algorithmSelect.instance = appState.algorithmSelect.build(
+          newState.numberOfClusters,
+          newState.gridSize
         );
       }
     })
     .build();
-  return gui.getDOM();
+  return { gui, dom: gui.getDOM() };
 }
 
 function createOutputSpace() {
@@ -185,7 +204,9 @@ function createUI(appState, domSpace) {
   const UI = {};
   UI.video = createVideoUI();
   UI.canvasSpace = createCanvasSpace();
-  UI.input = createInputSpace(appState);
+  const { gui, dom } = createInputSpace(appState);
+  UI.gui = gui;
+  UI.input = dom;
   UI.output = createOutputSpace();
   domSpace.appendChild(createAppTitle());
   domSpace.appendChild(UI.video);
