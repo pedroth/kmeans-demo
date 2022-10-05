@@ -1,23 +1,28 @@
-import Kmeans from "../algorithms/Kmeans.js";
+import GMM from "../algorithms/GMM.js";
 import { CANVAS_SIZE } from "../Utils.js";
 import Vec from "../Vec.js";
 import { COLOR_DIM, MAX_CANVAS_INDEX, updateGridShaderOutput } from "./ShaderUtils.js";
 
-export default class PxlGridKmeans {
+export default class PxlGridGMM {
   constructor(k, gridSize = 9) {
     this.k = k;
     this.gridSize = gridSize;
     this.outputCanvasSize = this.gridSize * 20;
     this.dim = this.gridSize * this.gridSize * COLOR_DIM;
     // clusters are grid^3 dimensional vectors which index represents colors in row major
-    this.kmeans = new Kmeans(k, this.dim);
+    this.gmm = new GMM(k, this.dim);
     this.haveGeneratedOutput = false;
   }
 
   _getColorFromDataPoint(testPoint) {
-    const classification = this.kmeans.predict(testPoint);
-    const index = classification.findIndex((x) => x > 0);
-    return this.kmeans.clusters[index].scale(255).toArray();
+    const clusterWeights = this.gmm.predict(testPoint);
+    let expectedGridImage = Vec.ZERO(this.dim);
+    for (let i = 0; i < this.k; i++) {
+      const w = clusterWeights.get(i);
+      const mu = this.gmm.clusters[i];
+      expectedGridImage = expectedGridImage.add(mu.scale(w));
+    }
+    return expectedGridImage.scale(255).toArray();
   }
 
   _getGridVec(i, j, imageData, width = CANVAS_SIZE.width) {
@@ -89,7 +94,7 @@ export default class PxlGridKmeans {
   }
 
   getGridArrayFromClusterIndex(index) {
-    return this.kmeans.clusters[index].scale(255).toArray();
+    return this.gmm.clusters[index].scale(255).toArray();
   }
 
   /**
@@ -98,7 +103,7 @@ export default class PxlGridKmeans {
    */
   updateWithImageData(imageData, filter) {
     const data = this._getDataFromImagePixels(imageData, filter);
-    this.kmeans.update(data);
+    this.gmm.update(data);
   }
 
   paintImage({ imageData, canvasOut }) {

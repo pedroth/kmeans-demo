@@ -45,7 +45,7 @@ const state2lazyColor = {
 };
 
 export default class PointCloudKmeans {
-  constructor(k) {
+  constructor(k, camera) {
     // model vars
     this.k = k;
     this.kmeans = new Kmeans(k, 3);
@@ -54,10 +54,12 @@ export default class PointCloudKmeans {
     this.states = [...Array(k)].map((_) => ({ type: STATES.CLUSTER }));
 
     // scene vars
-    this.camera = new Camera({
-      distanceToPlane: 0.1,
-      focalPoint: Vec3(0.5, 0.5, 0.5),
-    });
+    this.camera =
+      camera ||
+      new Camera({
+        distanceToPlane: 0.1,
+        focalPoint: Vec3(0.5, 0.5, 0.5),
+      });
     this.scene = new Scene();
     this.mouse = Vec2();
     this.isMouseDown = false;
@@ -166,7 +168,7 @@ export default class PointCloudKmeans {
   }
 
   _mouseWheel({ deltaY }) {
-    this.camera.param = this.camera.param.add(Vec3(deltaY * 0.01, 0, 0));
+    this.camera.param = this.camera.param.add(Vec3(deltaY * 0.001, 0, 0));
   }
 
   _setUpCanvas(canvas) {
