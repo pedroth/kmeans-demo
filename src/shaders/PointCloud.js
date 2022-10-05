@@ -30,9 +30,9 @@ const CUBE_EDGES_INDEXES = [
 ];
 
 export default class PointCloud {
-  constructor() {
+  constructor(camera) {
     // scene vars
-    this.camera = new Camera({
+    this.camera = camera || new Camera({
       distanceToPlane: 0.1,
       focalPoint: Vec3(0.5, 0.5, 0.5),
     });
@@ -110,7 +110,7 @@ export default class PointCloud {
   }
 
   _mouseWheel({ deltaY }) {
-    this.camera.param = this.camera.param.add(Vec3(deltaY * 0.01, 0, 0));
+    this.camera.param = this.camera.param.add(Vec3(deltaY * 0.001, 0, 0));
   }
 
   _setUpCanvas(canvas) {

@@ -11,6 +11,7 @@ import ColorKmeans from "./src/shaders/ColorKmeans.js";
 import PointCloud from "./src/shaders/PointCloud.js";
 import PointCloudGMM from "./src/shaders/PointCloudGMM.js";
 import PointCloudKmeans from "./src/shaders/PointCloudKmeans.js";
+import PxlGridGMM from "./src/shaders/PxlGridGMM.js";
 import PxlGridKmeans from "./src/shaders/PxlGridKmeans.js";
 import { CANVAS_SIZE, createWebCamFromVideo } from "./src/Utils.js";
 
@@ -30,10 +31,20 @@ function createAppState() {
 }
 
 function resetAppState(appState) {
-  appState.algorithmSelect.instance = appState.algorithmSelect.build(
-    appState.numberOfClusters,
-    appState.gridSize
-  );
+  // Hack to maintain camera in point cloud shaders
+  if (appState.algorithmSelect?.instance?.camera) {
+    const camera = appState.algorithmSelect.instance.camera;
+    appState.algorithmSelect.instance = appState.algorithmSelect.build(
+      appState.numberOfClusters,
+      camera
+    );
+  } else {
+    // normal reset
+    appState.algorithmSelect.instance = appState.algorithmSelect.build(
+      appState.numberOfClusters,
+      appState.gridSize
+    );
+  }
 }
 
 const SHADERS = {
@@ -43,16 +54,45 @@ const SHADERS = {
     name: "kmeans grid",
     build: (k, size) => new PxlGridKmeans(k, size),
   },
-  "point cloud": { name: "point cloud", build: (_) => new PointCloud() },
+  "gmm grid": {
+    name: "gmm grid",
+    build: (k, size) => new PxlGridGMM(k, size),
+  },
+  "point cloud": {
+    name: "point cloud",
+    build: (_, camera) => new PointCloud(camera),
+  },
   "point cloud + kmeans": {
     name: "point cloud + kmeans",
-    build: (k) => new PointCloudKmeans(k),
+    build: (k, camera) => new PointCloudKmeans(k, camera),
   },
   "point cloud + gmm": {
     name: "point cloud + gmm",
-    build: (k) => new PointCloudGMM(k),
+    build: (k, camera) => new PointCloudGMM(k, camera),
   },
 };
+
+//========================================================================================
+/*                                                                                      *
+ *                                         UTILS                                        *
+ *                                                                                      */
+//========================================================================================
+
+function _updateAlgorithm(appState, newState) {
+  // Hack to maintain camera in point cloud shaders
+  if (appState.algorithmSelect.name.includes("point")) {
+    const camera = appState.algorithmSelect.instance?.camera;
+    appState.algorithmSelect.instance = appState.algorithmSelect.build(
+      newState.numberOfClusters,
+      camera
+    );
+  } else {
+    appState.algorithmSelect.instance = appState.algorithmSelect.build(
+      newState.numberOfClusters,
+      newState.gridSize
+    );
+  }
+}
 
 //========================================================================================
 /*                                                                                      *
@@ -131,9 +171,6 @@ function createInputSpace(appState) {
         .max(1)
         .step(0.01),
       GUI.range("gridSize")
-        .visibility((state) => {
-          return state.algorithmSelect.name.includes("grid");
-        })
         .value(appState.gridSize)
         .label("Grid size")
         .min(1)
@@ -159,10 +196,7 @@ function createInputSpace(appState) {
         if (key === "algorithmSelect") {
           if (newState.algorithmSelect !== oldState.algorithmSelect) {
             appState.algorithmSelect = SHADERS[newState.algorithmSelect];
-            appState.algorithmSelect.instance = appState.algorithmSelect.build(
-              newState.numberOfClusters,
-              newState.gridSize
-            );
+            _updateAlgorithm(appState, newState)
           }
           return;
         }
@@ -171,16 +205,12 @@ function createInputSpace(appState) {
         }
       });
       if (oldState.numberOfClusters !== newState.numberOfClusters) {
-        appState.algorithmSelect.instance = appState.algorithmSelect.build(
-          newState.numberOfClusters,
-          newState.gridSize
-        );
+        _updateAlgorithm(appState, newState)
+        return
       }
       if (oldState.gridSize !== newState.gridSize) {
-        appState.algorithmSelect.instance = appState.algorithmSelect.build(
-          newState.numberOfClusters,
-          newState.gridSize
-        );
+        _updateAlgorithm(appState, newState);
+        return;
       }
     })
     .build();
