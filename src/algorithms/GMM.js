@@ -8,12 +8,17 @@ export default class GMM {
     this.sigmas = [];
     this.phis = [];
     this.clusters = [];
-    const UNIFORM = 1 / k;
+    this.UNIFORM = 1 / k;
     for (let i = 0; i < k; i++) {
       this.clusters[i] = Vec.RANDOM(dim);
       this.sigmas[i] = 1 + Math.random();
-      this.phis[i] = UNIFORM;
+      this.phis[i] = this.UNIFORM;
     }
+  }
+
+  _distributeWeightsAtRandom(weightsPerData, column) {
+    const randomIndex = Math.floor(Math.random() * weightsPerData.length);
+    weightsPerData[randomIndex] = Vec.e(this.k)(column);
   }
 
   /**
@@ -23,9 +28,19 @@ export default class GMM {
    */
   _getWeightsPerData(data) {
     const weightsPerData = [];
+    const weightsPerCluster = new Float32Array(this.k);
     for (let i = 0; i < data.length; i++) {
       const weights = this.predict(data[i]);
       weightsPerData.push(weights);
+      for (let j = 0; j < this.k; j++) {
+        weightsPerCluster[j] += weights.get(j);
+      }
+    }
+    // force clusters to have at least one data point
+    for (let j = 0; j < this.k; j++) {
+      if (weightsPerCluster[j] < 1e-5) {
+        this._distributeWeightsAtRandom(weightsPerData, j);
+      }
     }
     return weightsPerData;
   }
@@ -63,10 +78,9 @@ export default class GMM {
 
   _gaussian(x, mu, sigma) {
     const squareDist = x.sub(mu).squareLength();
-    return (
-      Math.exp(-squareDist / (2 * sigma)) /
-      Math.sqrt(powInt(2 * Math.PI * sigma, this.dim))
-    );
+    const zeta = Math.sqrt(powInt(2 * Math.PI * sigma, this.dim));
+    const prob = Math.exp(-squareDist / (2 * sigma));
+    return zeta === 0 ? prob : prob / zeta;
   }
 
   //========================================================================================
@@ -99,7 +113,7 @@ export default class GMM {
       acc += w[i];
     }
     for (let i = 0; i < this.k; i++) {
-      w[i] = w[i] / acc;
+      if (acc !== 0) w[i] = w[i] / acc;
     }
     return Vec.fromArray(w);
   }

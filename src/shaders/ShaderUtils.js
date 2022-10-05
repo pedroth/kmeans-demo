@@ -1,5 +1,10 @@
+import Canvas from "../Canvas.js";
 import alertModal from "../modal/modal.js";
+import { CANVAS_SIZE } from "../Utils.js";
 import { Vec3 } from "../Vec.js";
+
+export const COLOR_DIM = 3;
+export const MAX_CANVAS_INDEX = 4 * CANVAS_SIZE.width * CANVAS_SIZE.height - 1;
 
 /**
  *
@@ -218,6 +223,77 @@ export function updateShaderOutput(shader, outputElement) {
         });
         state2action[state.type]();
       }
+    });
+  });
+}
+
+const GRID_STYLE = (k) => ({
+  display: "grid",
+  "grid-template-columns": `repeat(min(${k}, 9), 1fr)`,
+  "grid-auto-rows": "75px",
+  "padding-top": "10px",
+  "padding-bottom": "10px",
+  gap: "10px",
+});
+
+const GRID_ITEM_STYLE = {
+  display: "flex",
+  height: "100%",
+  width: "100%",
+  "border-style": "solid",
+};
+
+function _createGridOutput(shader, outputElement) {
+  outputElement.innerHTML = "";
+  const k = shader.getNumberOfClusters();
+  Object.assign(outputElement.style, GRID_STYLE(k));
+  for (let i = 0; i < k; i++) {
+    const clusterGrid = shader.getGridArrayFromClusterIndex(i);
+    const clusterDiv = document.createElement("div");
+    Object.assign(clusterDiv.style, GRID_ITEM_STYLE);
+    const clusterCanvas = document.createElement("canvas");
+    clusterCanvas.setAttribute("width", shader.outputCanvasSize);
+    clusterCanvas.setAttribute("height", shader.outputCanvasSize);
+    Object.assign(clusterCanvas.style, {
+      flex: 1,
+    });
+    const canvas = new Canvas(clusterCanvas);
+    _paintOutputCanvasWithColorGrid(shader, clusterGrid, canvas);
+    canvas.paint();
+    clusterDiv.appendChild(clusterCanvas);
+    outputElement.appendChild(clusterDiv);
+  }
+}
+
+function _paintOutputCanvasWithColorGrid(shader, colorGrid, canvas) {
+  const canvasData = canvas.getData();
+  const size = canvas.width;
+  for (let dx = 0; dx < size; dx++) {
+    for (let dy = 0; dy < size; dy++) {
+      const innerIndex = 4 * (dx * size + dy);
+      const dxi = Math.floor(shader.gridSize * (dx / size));
+      const dyi = Math.floor(shader.gridSize * (dy / size));
+      const colorGridIndex = COLOR_DIM * (shader.gridSize * dxi + dyi);
+      canvasData[innerIndex] = colorGrid[colorGridIndex];
+      canvasData[innerIndex + 1] = colorGrid[colorGridIndex + 1];
+      canvasData[innerIndex + 2] = colorGrid[colorGridIndex + 2];
+      canvasData[innerIndex + 3] = 255;
+    }
+  }
+}
+
+export function updateGridShaderOutput(shader, outputElement) {
+  if (!shader.haveGeneratedOutput) {
+    _createGridOutput(shader, outputElement);
+    shader.haveGeneratedOutput = true;
+    return;
+  }
+  Array.from(outputElement.children).forEach((outer, i) => {
+    const clusterGrid = shader.getGridArrayFromClusterIndex(i);
+    Array.from(outer.children).forEach((inner, j) => {
+      const canvas = new Canvas(inner);
+      _paintOutputCanvasWithColorGrid(shader, clusterGrid, canvas);
+      canvas.paint();
     });
   });
 }
