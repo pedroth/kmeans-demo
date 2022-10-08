@@ -429,11 +429,21 @@ class BooleanBuilder {
 
     if (this._value) boolInput.setAttribute("checked", true);
     boolInput.addEventListener("change", (e) => {
-      setValueWithKey(this._id, e.target.checked);
+      setValueWithKey(this._id, !e.target.checked);
+      boolInput.checked = !e.target.checked;
     });
     boolLabel.innerText = this._label;
     boolDOM.appendChild(boolInput);
     boolDOM.appendChild(boolLabel);
+
+    boolDOM.onclick = (e) => {
+      const booleanToSet = !Boolean(boolInput.checked);
+      setValueWithKey(
+        this._id,
+        booleanToSet
+      );
+      boolInput.checked = booleanToSet;
+    }
     return boolDOM;
   }
 }
