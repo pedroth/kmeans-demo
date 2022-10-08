@@ -45,7 +45,7 @@ const state2lazyColor = {
 };
 
 export default class PointCloudGMM {
-  constructor(k) {
+  constructor(k, camera) {
     // model vars
     this.k = k;
     this.gmm = new GMM(k, 3);
@@ -54,7 +54,7 @@ export default class PointCloudGMM {
     this.states = [...Array(k)].map((_) => ({ type: STATES.CLUSTER }));
 
     // scene vars
-    this.camera = new Camera({
+    this.camera = camera || new Camera({
       distanceToPlane: 0.1,
       focalPoint: Vec3(0.5, 0.5, 0.5),
     });
@@ -181,19 +181,6 @@ export default class PointCloudGMM {
           .color(...rgb)
           .build()
       );
-      // this.scene.addElement(
-      //   Scene.Path.builder()
-      //     .name(`phis-horizontal${i}`)
-      //     .path(
-      //       this._getCircleIn(
-      //         this.gmm.clusters[i],
-      //         Vec3(0, 1, 0),
-      //         this.gmm.phis[i] / 2
-      //       )
-      //     )
-      //     .color(255, 0, 0, 255)
-      //     .build()
-      // );
     }
   }
 
@@ -234,7 +221,7 @@ export default class PointCloudGMM {
   }
 
   _mouseWheel({ deltaY }) {
-    this.camera.param = this.camera.param.add(Vec3(deltaY * 0.01, 0, 0));
+    this.camera.param = this.camera.param.add(Vec3(deltaY * 0.001, 0, 0));
   }
 
   _setUpCanvas(canvas) {

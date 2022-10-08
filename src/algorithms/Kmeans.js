@@ -13,6 +13,15 @@ export default class Kmeans {
     }
   }
 
+  _takeRandomDataPointFromCluster(clustersIndexes) {
+    const k = Math.floor(Math.random() * this.k);
+    if (clustersIndexes[k].length > 0) {
+      const sampleIndex = Math.floor(Math.random() * clustersIndexes[k].length);
+      return clustersIndexes[k][sampleIndex];
+    }
+    return this._takeRandomDataPointFromCluster(clustersIndexes);
+  }
+
   /**
    *
    * @param {Array<Vec>} data
@@ -25,9 +34,18 @@ export default class Kmeans {
     }
     for (let i = 0; i < data.length; i++) {
       const prediction = this.predict(data[i]);
-      const kIndex = prediction.findIndex((x) => x > 0);
+      const kIndex = Math.max(
+        0,
+        prediction.findIndex((x) => x > 0)
+      );
       const j = clusterIndex[kIndex].length;
       clusterIndex[kIndex][j] = i;
+    }
+    // force clusters to have at least one data point
+    for (let i = 0; i < this.k; i++) {
+      if (clusterIndex[i].length === 0) {
+        clusterIndex[i][0] = this._takeRandomDataPointFromCluster(clusterIndex);
+      }
     }
     return clusterIndex;
   }
@@ -41,7 +59,7 @@ export default class Kmeans {
         const rgb = data[clusterDataIndex[j]];
         mu = mu.add(rgb);
       }
-      this.clusters[i] = n === 0 ? Vec.RANDOM(this.dim) : mu.scale(1.0 / n);
+      this.clusters[i] = mu.scale(1.0 / n);
     }
   }
 

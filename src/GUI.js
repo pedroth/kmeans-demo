@@ -173,15 +173,12 @@ class GUIBuilder {
   }
 }
 
-class FileBuilder {
+class GUIElement {
   constructor(id) {
     this._id = id;
     this._value;
     this._label;
-    this._extensions;
-    this._onload;
   }
-
   value(value) {
     this._value = value;
     return this;
@@ -190,6 +187,20 @@ class FileBuilder {
     this._label = label;
     return this;
   }
+  buildDOM() {
+    const elem = document.createElement("div");
+    elem.innerText = `${this._label}:${this._value}`;
+    return elem;
+  }
+}
+
+class FileBuilder extends GUIElement {
+  constructor(id) {
+    super(id);
+    this._extensions;
+    this._onload;
+  }
+
   extensions(...extensions) {
     this._extensions = extensions;
     return this;
@@ -227,22 +238,12 @@ class FileBuilder {
   }
 }
 
-class SelectBuilder {
+class SelectBuilder extends GUIElement {
   constructor(id) {
-    this._id = id;
-    this._value;
-    this._label;
+    super(id);
     this._options;
   }
 
-  value(value) {
-    this._value = value;
-    return this;
-  }
-  label(label) {
-    this._label = label;
-    return this;
-  }
   options(options) {
     this._options = options;
     return this;
@@ -273,23 +274,14 @@ class SelectBuilder {
     return selectDOM;
   }
 }
-class NumberBuilder {
+class NumberBuilder extends GUIElement {
   constructor(id) {
-    this._id = id;
-    this._value;
-    this._label;
+    super(id);
     this._min;
     this._max;
     this._step;
   }
-  value(value) {
-    this._value = value;
-    return this;
-  }
-  label(label) {
-    this._label = label;
-    return this;
-  }
+
   min(min) {
     this._min = min;
     return this;
@@ -328,23 +320,14 @@ class NumberBuilder {
   }
 }
 
-class RangeBuilder {
+class RangeBuilder extends GUIElement {
   constructor(id) {
-    this._id = id;
-    this._value;
-    this._label;
+    super(id);
     this._min;
     this._max;
     this._step;
   }
-  value(value) {
-    this._value = value;
-    return this;
-  }
-  label(label) {
-    this._label = label;
-    return this;
-  }
+
   min(min) {
     this._min = min;
     return this;
@@ -401,19 +384,10 @@ class RangeBuilder {
   }
 }
 
-class BooleanBuilder {
+class BooleanBuilder extends GUIElement {
   constructor(id) {
-    this._id = id;
+    super(id);
     this._value = false;
-    this._label;
-  }
-  value(value) {
-    this._value = value;
-    return this;
-  }
-  label(label) {
-    this._label = label;
-    return this;
   }
 
   buildDOM(setValueWithKey) {
@@ -448,19 +422,15 @@ class BooleanBuilder {
   }
 }
 
-class ButtonBuilder {
+class ButtonBuilder extends GUIElement {
   constructor(id) {
-    this._id = id;
+    super(id);
     this._onClick;
-    this._label;
   }
+
   onClick(onClick) {
     this._onClick = onClick;
     this._value = this._onClick;
-    return this;
-  }
-  label(label) {
-    this._label = label;
     return this;
   }
 
@@ -472,18 +442,13 @@ class ButtonBuilder {
   }
 }
 
-class ObjectBuilder {
+class ObjectBuilder extends GUIElement {
   constructor(id) {
-    this._id = id;
+    super(id);
     this._children;
-    this._label;
   }
   children(...children) {
     this._children = children;
-    return this;
-  }
-  label(label) {
-    this._label = label;
     return this;
   }
 
