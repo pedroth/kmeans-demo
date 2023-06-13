@@ -1,14 +1,15 @@
 import Kmeans from "../algorithms/Kmeans.js";
 import { CANVAS_SIZE } from "../Utils.js";
 import Vec from "../Vec.js";
-import { COLOR_DIM, MAX_CANVAS_INDEX, updateGridShaderOutput } from "./ShaderUtils.js";
+import { COLOR_DIM, MAX_CANVAS_INDEX, updateGridShaderOutput, GRID_OUTPUT_SIZE_MULTIPLIER } from "./ShaderUtils.js";
 
 export default class PxlGridKmeans {
   constructor(k, gridSize = 9) {
     this.k = k;
     this.gridSize = gridSize;
-    this.outputCanvasSize = this.gridSize * 20;
+    this.outputCanvasSize = this.gridSize * GRID_OUTPUT_SIZE_MULTIPLIER;
     this.dim = this.gridSize * this.gridSize * COLOR_DIM;
+    this.gridColorIndex = Math.floor(this.dim / 2) - 1
     // clusters are grid^3 dimensional vectors which index represents colors in row major
     this.kmeans = new Kmeans(k, this.dim);
     this.haveGeneratedOutput = false;
@@ -45,8 +46,8 @@ export default class PxlGridKmeans {
   ) {
     const data = [];
     let k = 0;
-    for (let i = 0; i < width; i += this.gridSize) {
-      for (let j = 0; j < height; j += this.gridSize) {
+    for (let i = 0; i < width; i++) {
+      for (let j = 0; j < height; j++) {
         if (filter()) {
           data[k++] = this._getGridVec(i, j, imageData);
         }
@@ -75,7 +76,7 @@ export default class PxlGridKmeans {
     }
   }
 
- 
+
 
 
   //========================================================================================
@@ -103,11 +104,15 @@ export default class PxlGridKmeans {
 
   paintImage({ imageData, canvasOut }) {
     const dataOut = canvasOut.getData();
-    for (let i = 0; i < CANVAS_SIZE.height; i += this.gridSize) {
-      for (let j = 0; j < CANVAS_SIZE.width; j += this.gridSize) {
+    for (let i = 0; i < CANVAS_SIZE.height; i++) {
+      for (let j = 0; j < CANVAS_SIZE.width; j++) {
         const testData = this._getGridVec(i, j, imageData);
         const colorGrid = this._getColorFromDataPoint(testData);
-        this._paintDataWithColorGrid(i, j, colorGrid, dataOut);
+        const index = 4 * (i * CANVAS_SIZE.width + j);
+        dataOut[index] = colorGrid[this.gridColorIndex];
+        dataOut[index + 1] = colorGrid[this.gridColorIndex + 1];
+        dataOut[index + 2] = colorGrid[this.gridColorIndex + 2];
+        dataOut[index + 3] = 255;
       }
     }
     canvasOut.paint();

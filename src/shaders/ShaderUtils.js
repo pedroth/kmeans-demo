@@ -243,6 +243,8 @@ const GRID_ITEM_STYLE = {
   "border-style": "solid",
 };
 
+export const GRID_OUTPUT_SIZE_MULTIPLIER = 20;
+
 function _createGridOutput(shader, outputElement) {
   outputElement.innerHTML = "";
   const k = shader.getNumberOfClusters();
