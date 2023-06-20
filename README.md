@@ -1,4 +1,4 @@
-# kmeans-demo
+# [kmeans-demo](pedroth.github.io/kmeans-demo)
 
 Clustering colors in video.
 
