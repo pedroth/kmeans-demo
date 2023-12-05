@@ -71,17 +71,17 @@ export function matrixProd(matrix, vec3) {
 
 let SUM = {};
 let COUNT = {};
-export function measureTime(lambda, label = "") {
+export function measureTime(lambda, {label = "", map = x => x}) {
   const startTime = performance.now();
   const ans = lambda();
   const endTime = performance.now();
-  const diff = endTime - startTime;
+  const diff = (endTime - startTime) * 1e-3;
   if (!(label in SUM)) {
     SUM[label] = 0;
     COUNT[label] = 0;
   }
   SUM[label] += diff;
   COUNT[label] += 1;
-  console.log(`Performance ${diff}s ${label}`);
+  console.log(`Performance of label ${label}: ${map(diff)}`);
   return ans;
 }
