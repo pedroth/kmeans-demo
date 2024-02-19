@@ -170,14 +170,14 @@ export default class PointCloudGMM {
       this.scene.addElement(
         Scene.Path.builder()
           .name(`sigma-vertical${i}`)
-          .path(this._getCircleIn(this.gmm.clusters[i], Vec3(1, 0, 0), radius))
+          .path(this._getCircleIn(this.gmm.clusters[i], Vec3(1, 1, 0), radius))
           .color(...rgb)
           .build()
       );
       this.scene.addElement(
         Scene.Path.builder()
           .name(`sigma-horizontal${i}`)
-          .path(this._getCircleIn(this.gmm.clusters[i], Vec3(0, 0, 1), radius))
+          .path(this._getCircleIn(this.gmm.clusters[i], Vec3(0, 1, 1), radius))
           .color(...rgb)
           .build()
       );

@@ -209,7 +209,7 @@ export default class Vec {
 
 export const BUILD_VEC = (n) => new ARRAY_TYPES.Float64Array(n);
 export const COPY_VEC = (array) => ARRAY_TYPES.Float64Array.from(array);
-export class VectorException extends Error {}
+export class VectorException extends Error { }
 
 export const Vec3 = (x = 0, y = 0, z = 0) => new Vector3(x, y, z);
 export const Vec2 = (x = 0, y = 0) => new Vector2(x, y);
@@ -238,9 +238,7 @@ class Vector3 {
 
   /**index starts at zero */
   get(i) {
-    if (i === 0) return this.x;
-    if (i === 1) return this.y;
-    if (i === 2) return this.z;
+    return [this.x, this.y, this.z][i]
   }
 
   toArray() {
@@ -383,8 +381,7 @@ class Vector2 {
 
   /**index starts at zero */
   get(i) {
-    if (i === 0) return this.x;
-    if (i === 1) return this.y;
+    return [this.x, this.y][i]
   }
 
   toArray() {

@@ -146,8 +146,7 @@ function drawPoint(point, camera, canvas, { zBuffer }) {
   }
   //project
   const projectedPoint = pointInCameraCoords
-    .scale(distanceToPlane)
-    .scale(1 / zCoord);
+    .scale(distanceToPlane / zCoord);
 
   // draw
   canvas.drawPoint(projectedPoint.take(0, 2), rgb, {
