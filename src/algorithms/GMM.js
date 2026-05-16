@@ -106,7 +106,6 @@ export default class GMM {
    * @returns {Array<Number>}
    */
   predict(x) {
-    const uniform = 1 / this.k;
     let w = [];
     let acc = 0;
     for (let i = 0; i < this.k; i++) {
@@ -114,7 +113,7 @@ export default class GMM {
       acc += w[i];
     }
     for (let i = 0; i < this.k; i++) {
-      w[i] = (acc === 0 ? uniform : w[i] / acc);
+      w[i] = (acc === 0 ? this.UNIFORM : w[i] / acc);
     }
     return Vec.fromArray(w);
   }
