@@ -152,7 +152,7 @@ function createInputSpace(appState) {
           });
         }),
       GUI.selector("algorithmSelect")
-        .value(appState.algorithmSelect)
+        .value(appState.algorithmSelect.name)
         .label("Clustering method")
         .options(
           Object.keys(SHADERS).map((option) => ({
@@ -175,7 +175,8 @@ function createInputSpace(appState) {
         .label("Grid size")
         .min(1)
         .max(50)
-        .step(1),
+        .step(1)
+        .visibleWhen((state) => state.algorithmSelect.includes("grid")),
       GUI.object("learning")
         .label("Learning")
         .children(
@@ -196,7 +197,7 @@ function createInputSpace(appState) {
         if (key === "algorithmSelect") {
           if (newState.algorithmSelect !== oldState.algorithmSelect) {
             appState.algorithmSelect = SHADERS[newState.algorithmSelect];
-            _updateAlgorithm(appState, newState)
+            _updateAlgorithm(appState, newState);
           }
           return;
         }
@@ -205,8 +206,8 @@ function createInputSpace(appState) {
         }
       });
       if (oldState.numberOfClusters !== newState.numberOfClusters) {
-        _updateAlgorithm(appState, newState)
-        return
+        _updateAlgorithm(appState, newState);
+        return;
       }
       if (oldState.gridSize !== newState.gridSize) {
         _updateAlgorithm(appState, newState);

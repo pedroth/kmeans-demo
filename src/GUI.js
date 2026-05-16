@@ -3,8 +3,9 @@ class GUI {
     this.schema = schema;
     this.state = this.buildStateFromSchema(schema);
     this.id2key = this.buildId2KeyMapFromSchema(schema);
-    this.DOM = this.buildDOMFromSchema(schema);
     this.onChangeLambda = onChangeLambda;
+    this.DOM = this.buildDOMFromSchema(schema);
+    this.refreshConditionalVisibility();
   }
 
   getDOM() {
@@ -28,8 +29,20 @@ class GUI {
     } catch (error) {
       // do nothing
     }
+    this.refreshConditionalVisibility();
     this.onChangeLambda(this.state, oldState);
     return this;
+  };
+
+  refreshConditionalVisibility = () => {
+    const walk = (domNode) => {
+      if (!domNode) return;
+      if (typeof domNode._refreshVisibility === "function") {
+        domNode._refreshVisibility();
+      }
+      Array.from(domNode.children).forEach(walk);
+    };
+    walk(this.DOM);
   };
 
   getValueWithKey = (key) => {
@@ -81,7 +94,8 @@ class GUI {
     const formDOM = createForm(
       schema,
       this.setValueWithKey,
-      this.getValueWithKey
+      this.getValueWithKey,
+      () => this.state
     );
     const toggleFormButton = createToggleFormButton(formDOM);
     guiDOM.appendChild(formDOM);
@@ -107,10 +121,10 @@ class GUI {
  *                                                                                      */
 //========================================================================================
 
-const createForm = (schema, setValueWithKey, getValueWithKey) => {
+const createForm = (schema, setValueWithKey, getValueWithKey, getState) => {
   const formDOM = document.createElement("div");
   schema.forEach((elem) => {
-    const domElem = elem.buildDOM(setValueWithKey, getValueWithKey);
+    const domElem = elem.buildDOM(setValueWithKey, getValueWithKey, getState);
     formDOM.appendChild(domElem);
   });
   return formDOM;
@@ -178,6 +192,7 @@ class GUIElement {
     this._id = id;
     this._value;
     this._label;
+    this._visibleWhen = () => true;
   }
   value(value) {
     this._value = value;
@@ -187,10 +202,22 @@ class GUIElement {
     this._label = label;
     return this;
   }
+  visibleWhen(visibleWhenLambda) {
+    this._visibleWhen = visibleWhenLambda;
+    return this;
+  }
+  applyVisibility(dom, getState = () => ({})) {
+    dom._refreshVisibility = () => {
+      const isVisible = this._visibleWhen ? Boolean(this._visibleWhen(getState())) : true;
+      dom.style.display = isVisible ? "" : "none";
+    };
+    dom._refreshVisibility();
+    return dom;
+  }
   buildDOM() {
     const elem = document.createElement("div");
     elem.innerText = `${this._label}:${this._value}`;
-    return elem;
+    return this.applyVisibility(elem);
   }
 }
 
@@ -211,7 +238,7 @@ class FileBuilder extends GUIElement {
     return this;
   }
 
-  buildDOM(setValueWithKey) {
+  buildDOM(setValueWithKey, _, getState) {
     const fileDOM = document.createElement("div");
     fileDOM.setAttribute("class", "outer");
 
@@ -234,7 +261,7 @@ class FileBuilder extends GUIElement {
     labelDOM.innerText = this._label;
     fileDOM.appendChild(labelDOM);
     fileDOM.appendChild(fileInnerDOM);
-    return fileDOM;
+    return this.applyVisibility(fileDOM, getState);
   }
 }
 
@@ -249,7 +276,7 @@ class SelectBuilder extends GUIElement {
     return this;
   }
 
-  buildDOM(setValueWithKey) {
+  buildDOM(setValueWithKey, _, getState) {
     const selectDOM = document.createElement("div");
     selectDOM.setAttribute("class", "outer");
 
@@ -271,7 +298,7 @@ class SelectBuilder extends GUIElement {
     selectLabel.innerText = this._label;
     selectDOM.appendChild(selectLabel);
     selectDOM.appendChild(selectInnerDOM);
-    return selectDOM;
+    return this.applyVisibility(selectDOM, getState);
   }
 }
 class NumberBuilder extends GUIElement {
@@ -295,7 +322,7 @@ class NumberBuilder extends GUIElement {
     return this;
   }
 
-  buildDOM(setValueWithKey) {
+  buildDOM(setValueWithKey, _, getState) {
     const numberDOM = document.createElement("div");
     numberDOM.setAttribute("class", "outer");
 
@@ -316,7 +343,7 @@ class NumberBuilder extends GUIElement {
     numberLabel.innerText = this._label;
     numberDOM.appendChild(numberLabel);
     numberDOM.appendChild(numberInput);
-    return numberDOM;
+    return this.applyVisibility(numberDOM, getState);
   }
 }
 
@@ -341,7 +368,7 @@ class RangeBuilder extends GUIElement {
     return this;
   }
 
-  buildDOM(setValueWithKey) {
+  buildDOM(setValueWithKey, _, getState) {
     const numberDOM = document.createElement("div");
     numberDOM.setAttribute("class", "outer");
 
@@ -380,7 +407,7 @@ class RangeBuilder extends GUIElement {
     numberDOM.appendChild(numberLabel);
     numberDOM.appendChild(rangeInput);
     numberDOM.appendChild(numberInput);
-    return numberDOM;
+    return this.applyVisibility(numberDOM, getState);
   }
 }
 
@@ -390,7 +417,7 @@ class BooleanBuilder extends GUIElement {
     this._value = false;
   }
 
-  buildDOM(setValueWithKey) {
+  buildDOM(setValueWithKey, _, getState) {
     const boolDOM = document.createElement("div");
     boolDOM.setAttribute("class", "outer");
 
@@ -418,7 +445,7 @@ class BooleanBuilder extends GUIElement {
       );
       boolInput.checked = booleanToSet;
     }
-    return boolDOM;
+    return this.applyVisibility(boolDOM, getState);
   }
 }
 
@@ -434,11 +461,11 @@ class ButtonBuilder extends GUIElement {
     return this;
   }
 
-  buildDOM() {
+  buildDOM(_, __, getState) {
     const button = document.createElement("button");
     button.innerText = this._label;
     button.onclick = this._onClick;
-    return button;
+    return this.applyVisibility(button, getState);
   }
 }
 
@@ -452,7 +479,7 @@ class ObjectBuilder extends GUIElement {
     return this;
   }
 
-  buildDOM(setValueWithKey) {
+  buildDOM(setValueWithKey, getValueWithKey, getState) {
     const objectDom = document.createElement("details");
     if (!!this._label) {
       const label = document.createElement("summary");
@@ -462,11 +489,11 @@ class ObjectBuilder extends GUIElement {
     const childrenSpace = document.createElement("div");
     childrenSpace.setAttribute("style", "padding-left: 1em");
     this._children.forEach((c) => {
-      const domChildren = c.buildDOM(setValueWithKey);
+      const domChildren = c.buildDOM(setValueWithKey, getValueWithKey, getState);
       childrenSpace.appendChild(domChildren);
     });
     objectDom.appendChild(childrenSpace);
-    return objectDom;
+    return this.applyVisibility(objectDom, getState);
   }
 }
 
