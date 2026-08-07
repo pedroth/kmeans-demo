@@ -100,9 +100,12 @@ function _updateAlgorithm(appState, newState) {
  *                                                                                      */
 //========================================================================================
 
+const TITLE = "Clustering video colors";
+const TITLE_ID = "appTitle";
 function createAppTitle() {
   const h1 = document.createElement("h1");
-  h1.innerText = "Clustering video colors";
+  h1.innerText = TITLE;
+  h1.id = TITLE_ID;
   return h1;
 }
 
@@ -306,6 +309,9 @@ function getInputImage(UI, { imageFile }) {
   return UI.video;
 }
 
+let dt = 0;
+let oldTime = performance.now();
+const title = document.head.title;
 function clusterVideoImage(UI, appState) {
   const canvasIn = getCanvasInput(UI);
   const canvasOut = getCanvasOutput(UI);
@@ -323,6 +329,10 @@ function clusterVideoImage(UI, appState) {
   clusterAlgorithm.paintImage({ imageData, canvasOut, appState });
   clusterAlgorithm.updateOutput(UI.output);
   requestAnimationFrame(() => clusterVideoImage(UI, appState));
+  dt = performance.now() - oldTime;
+  oldTime = performance.now();
+  const fps = Math.round(1000 / dt);
+  document.getElementById(TITLE_ID).innerText = `${TITLE} | ${fps} fps`;
 }
 
 (() => {

@@ -126,10 +126,14 @@ function _getCustomColorStateComponent({ shader, index, closeModal }) {
   title.innerText = "Custom Color:";
   const color = document.createElement("input");
   color.setAttribute("type", "color");
-  color.onchange = (evt) => {
-    shader.states[index] = { type: STATES.CUSTOM, color: evt.target.value };
+  const updateCustomColorState = () => {
+    shader.states[index] = { type: STATES.CUSTOM, color: color.value };
     closeModal();
   };
+  color.value = shader.states[index]?.type === STATES.CUSTOM
+    ? shader.states[index].color
+    : "#000000";
+  color.onblur = updateCustomColorState;
   Object.assign(color.style, { flex: 1 });
   container.appendChild(title);
   container.appendChild(color);
