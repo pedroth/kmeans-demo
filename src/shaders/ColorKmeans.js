@@ -14,9 +14,9 @@ const state2lazyColor = {
 };
 
 export default class ColorKmeans {
-  constructor(k) {
+  constructor(k, Algorithm = Kmeans) {
     this.k = k;
-    this.kmeans = new Kmeans(k, 3);
+    this.kmeans = new Algorithm(k, 3);
     this.states = [...Array(k)].map((_) => ({ type: STATES.CLUSTER }));
   }
 

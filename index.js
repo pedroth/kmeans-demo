@@ -7,11 +7,14 @@
 import Canvas from "./src/Canvas.js";
 import GUI from "./src/GUI.js";
 import ColorGMM from "./src/shaders/ColorGMM.js";
+import ColorEmeans from "./src/shaders/ColorEmeans.js";
 import ColorKmeans from "./src/shaders/ColorKmeans.js";
 import PointCloud from "./src/shaders/PointCloud.js";
 import PointCloudGMM from "./src/shaders/PointCloudGMM.js";
+import PointCloudEMeans from "./src/shaders/PointCloudEMeans.js";
 import PointCloudKmeans from "./src/shaders/PointCloudKmeans.js";
 import PxlGridGMM from "./src/shaders/PxlGridGMM.js";
+import PxlGridEmeans from "./src/shaders/PxlGridEmeans.js";
 import PxlGridKmeans from "./src/shaders/PxlGridKmeans.js";
 import { CANVAS_SIZE, createWebCamFromVideo } from "./src/Utils.js";
 
@@ -49,10 +52,15 @@ function resetAppState(appState) {
 
 const SHADERS = {
   kmeans: { name: "kmeans", build: (k) => new ColorKmeans(k) },
+  "e-means": { name: "e-means", build: (k) => new ColorEmeans(k) },
   gmm: { name: "gmm", build: (k) => new ColorGMM(k) },
   "kmeans grid": {
     name: "kmeans grid",
     build: (k, size) => new PxlGridKmeans(k, size),
+  },
+  "e-means grid": {
+    name: "e-means grid",
+    build: (k, size) => new PxlGridEmeans(k, size),
   },
   "gmm grid": {
     name: "gmm grid",
@@ -65,6 +73,10 @@ const SHADERS = {
   "point cloud + kmeans": {
     name: "point cloud + kmeans",
     build: (k, camera) => new PointCloudKmeans(k, camera),
+  },
+  "point cloud + e-means": {
+    name: "point cloud + e-means",
+    build: (k, camera) => new PointCloudEMeans(k, camera),
   },
   "point cloud + gmm": {
     name: "point cloud + gmm",

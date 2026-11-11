@@ -45,10 +45,10 @@ const state2lazyColor = {
 };
 
 export default class PointCloudKmeans {
-  constructor(k, camera) {
+  constructor(k, camera, Algorithm = Kmeans) {
     // model vars
     this.k = k;
-    this.kmeans = new Kmeans(k, 3);
+    this.kmeans = new Algorithm(k, 3);
 
     // output vars
     this.states = [...Array(k)].map((_) => ({ type: STATES.CLUSTER }));

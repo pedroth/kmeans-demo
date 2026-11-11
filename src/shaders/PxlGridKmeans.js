@@ -4,14 +4,14 @@ import Vec from "../Vec.js";
 import { COLOR_DIM, MAX_CANVAS_INDEX, updateGridShaderOutput, GRID_OUTPUT_SIZE_MULTIPLIER } from "./ShaderUtils.js";
 
 export default class PxlGridKmeans {
-  constructor(k, gridSize = 9) {
+  constructor(k, gridSize = 9, Algorithm = Kmeans) {
     this.k = k;
     this.gridSize = gridSize;
     this.outputCanvasSize = this.gridSize * GRID_OUTPUT_SIZE_MULTIPLIER;
     this.dim = this.gridSize * this.gridSize * COLOR_DIM;
     this.gridColorIndex = Math.floor(this.dim / 2) - 1
     // clusters are grid^3 dimensional vectors which index represents colors in row major
-    this.kmeans = new Kmeans(k, this.dim);
+    this.kmeans = new Algorithm(k, this.dim);
     this.haveGeneratedOutput = false;
   }
 
